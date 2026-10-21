@@ -12,24 +12,25 @@ button,select{font:inherit;color:inherit;background:#252b49;border:1px solid #44
 .loot-item{padding:12px;margin:8px 0;border:1px solid #343b60;border-radius:12px;background:#101527}.rarity-normal{border-color:#9399aa}.rarity-rare{border-color:#5aabff}.rarity-epic{border-color:#a978ff}.rarity-legendary{border-color:#f3bc53}.rarity-mythic{border-color:#ff6b9c;box-shadow:0 0 16px #ff6b9c30}.chestbadge{background:#28213b;padding:8px 12px;border-radius:10px}.panelhead{flex-wrap:wrap}.tab{padding:10px 12px}.equip{min-height:65px}@media(min-width:1500px){.scene{height:620px}.panelbody{padding:20px}.panelhead{padding:18px 20px}}
 
 .equipment-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}.equipment-slot{min-height:105px;padding:12px;background:#191f37;border:1px solid #3c476c;border-radius:12px}.equipment-slot b{display:block}.equipment-slot button{margin-top:8px}.bag-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;margin:8px 0;background:#1b213b;border:1px solid #3c476c;border-radius:12px;flex-wrap:wrap}.bag-item button{margin-left:5px}.rarity-legendary{border-color:#e2a84b}.rarity-mythic{border-color:#ed70d5}.rarity-epic{border-color:#ae84ff}.rarity-rare{border-color:#5a9eff}@media(max-width:650px){.equipment-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.scene{height:clamp(540px,65vh,860px)}#scene{width:100%;height:100%;display:block;object-fit:fill}.scene-overlay{pointer-events:none}.combatbar button{min-height:52px;font-size:19px}.scene::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 90px #0008}.panel{box-shadow:0 20px 60px #0007}@media(max-width:800px){.scene{height:540px}}
 </style>
 </head>
 <body>
 <div class="app" id="app">
   <header class="top">
-    <div><div class="brand">ECLIPSE<span>: ASCENSION</span></div><div class="muted tiny">Idle RPG • grywalny prototyp 0.7</div></div>
+    <div><div class="brand">ECLIPSE<span>: ASCENSION</span></div><div class="muted tiny">Idle RPG • grywalny prototyp 0.8</div></div>
     <div class="resources">
       <div class="pill">🪙 <b id="gold">0</b></div>
       <div class="pill">✦ <b id="essence">0</b> esencji</div>
       <div class="pill">⚔️ <b id="power">0</b> mocy</div>
     </div>
   </header>
-  <div class="notice" style="background:#173b36;border-color:#4db99e;color:#d8fff5;font-weight:700">✅ AKTUALIZACJA ONLINE DZIAŁA! ECLIPSE v0.7 — Sety, Auto Open i masowa sprzedaż 🎉</div>
+  <div class="notice" style="background:#173b36;border-color:#4db99e;color:#d8fff5;font-weight:700">✅ AKTUALIZACJA ONLINE DZIAŁA! ECLIPSE v0.8 — Większa arena i efekty walki 🎉</div>
   <div class="notice tiny">Prototyp mechanik • ADMIN Auto Click: Opcje — zapis lokalny w tej przeglądarce. Postęp offline jest naliczany przy ponownym otwarciu gry. Skrzynki wypadają tylko za bossów pokonanych podczas aktywnej gry.</div>
   <main class="layout">
     <section class="panel">
       <div class="panelhead"><b>⚔️ Pole bitwy</b><span class="muted tiny" id="classLabel">Warrior</span></div>
-      <div class="scene"><canvas id="scene" width="900" height="480" aria-label="Scena walki"></canvas>
+      <div class="scene"><canvas id="scene" width="1200" height="640" aria-label="Scena walki"></canvas>
         <div class="scene-overlay"><div class="stage"><b id="stage">Etap 1</b><div class="tiny muted" id="enemyName">Pustynny szlam</div></div>
         <div class="stage"><div class="tiny">ŻYCIE PRZECIWNIKA</div><div class="bossbar"><div id="bossFill"></div></div><div class="tiny" id="bossHp">100 / 100</div></div></div>
       </div>
@@ -94,7 +95,7 @@ button,select{font:inherit;color:inherit;background:#252b49;border:1px solid #44
       </div>
     </section>
   </main>
-  <div class="footer">ECLIPSE: Ascension • MVP 0.7 • robocza nazwa i oryginalne zasady gry</div>
+  <div class="footer">ECLIPSE: Ascension • MVP 0.8 • robocza nazwa i oryginalne zasady gry</div>
 </div>
 <script>
 (()=>{
@@ -122,7 +123,8 @@ let s={
  classId:'warrior',weaponIndex:0,damageLevel:0,autoLevel:0,skillUnlocked:{class:true,shadow:false,focus:false,frenzy:false},
  skillCooldown:0,heroHp:100,heroMaxHp:100,theme:'dark',lastSeen:Date.now(),questsClaimed:{},questProgress:{},autoDamage:0,focusUntil:0,frenzyUntil:0,adminAuto:false,adminPrestige:false,adminOpen:false,adminRate:25,adminClickBuffer:0,chests:0,inventory:[],equipment:{warrior:{},ranger:{},arcanist:{}},highestStage:1
 };
-let enemyTick=0, lastFrame=performance.now(), attackFlash=0;
+let enemyTick=0, lastFrame=performance.now(), attackFlash=0;const particles=[];const floatTexts=[];let screenShake=0;let lastEffectTime=0;
+function combatEffect(amount,source){const now=performance.now();if(now-lastEffectTime<65)return;lastEffectTime=now;const x=840,y=405;const heavy=source==='skill';screenShake=Math.min(15,screenShake+(heavy?10:3));for(let i=0;i<(heavy?22:9);i++){const angle=Math.random()*Math.PI*2,speed=(heavy?3.8:2.5)+Math.random()*4;particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:1,color:heavy?'#e3a2ff':Math.random()<.5?'#ffe3a2':'#6eece5',size:2+Math.random()*5})}floatTexts.push({x:x+(Math.random()-.5)*70,y:y-80,value:fmt(amount),life:1,heavy});if(particles.length>170)particles.splice(0,particles.length-170);if(floatTexts.length>18)floatTexts.shift()}
 const questDefs=[
  {id:'clicks100',name:'Palec wojownika',desc:'Wykonaj 100 kliknięć.',goal:100,key:'clicks',reward:150,kind:'gold'},
  {id:'kills25',name:'Oczyszczanie krainy',desc:'Pokonaj 25 przeciwników.',goal:25,key:'kills',reward:250,kind:'gold'},
@@ -146,7 +148,7 @@ function load(){try{let raw=localStorage.getItem('eclipseAscensionSave');if(raw)
  s.lastSeen=Date.now();}
 function enemyMax(){return Math.floor(100*Math.pow(1.18,s.stage-1)*(s.stage%10===0?4:1))}
 function setStage(n){s.stage=n;s.highestStage=Math.max(s.highestStage||1,n);s.bossMax=enemyMax();s.bossHp=s.bossMax;pushLog(`Rozpoczęto etap ${s.stage}: ${enemyLabel()}.`);render()}
-function hit(amount,source='atak'){if(s.bossHp<=0)return;s.bossHp-=amount;attackFlash=1;if(s.bossHp<=0){s.bossHp=0;s.gold+=Math.floor(12+s.stage*4);s.kills++;if(s.stage%10===0){s.bosses++;s.chests=(s.chests||0)+1;s.gold+=Math.floor(s.stage*20);pushLog('Boss pokonany! +1 skrzynka. Otwórz ją w zakładce Skrzynki!')}else pushLog(`${enemyLabel()} pokonany.`);checkUnlocks();setStage(s.stage+1)}else renderCombat()}
+function hit(amount,source='atak'){if(s.bossHp<=0)return;s.bossHp-=amount;attackFlash=1;combatEffect(amount,source);if(s.bossHp<=0){s.bossHp=0;s.gold+=Math.floor(12+s.stage*4);s.kills++;if(s.stage%10===0){s.bosses++;s.chests=(s.chests||0)+1;s.gold+=Math.floor(s.stage*20);pushLog('Boss pokonany! +1 skrzynka. Otwórz ją w zakładce Skrzynki!')}else pushLog(`${enemyLabel()} pokonany.`);checkUnlocks();setStage(s.stage+1)}else renderCombat()}
 function manualAttack(){s.clicks++;let bonus=s.skillUnlocked.focus?1.5:1;hit(damage()*bonus,'klik');checkUnlocks();renderStats();renderQuests();if(s.clicks%25===0)save()}
 function useSkill(){if(s.skillCooldown>0){pushLog(`Skill gotowy za ${Math.ceil(s.skillCooldown)} s.`);return}
  const w=weapon();const dmg=Math.floor(damage()*w.scale*(s.skillUnlocked.shadow?1.3:1));
@@ -203,17 +205,17 @@ $('resetBtn').onclick=()=>{if(confirm('Na pewno usunąć cały zapis?')){localSt
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
 window.addEventListener('keydown',e=>{if(e.code==='Space'&&!['BUTTON','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();manualAttack()}if(e.key.toLowerCase()==='q')useSkill()});
 const canvas=$('scene'),ctx=canvas.getContext('2d');
-function drawScene(t){let w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
+function drawScene(t){let w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.save();ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);screenShake*=.83;if(screenShake<.15)screenShake=0;
  let grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,s.theme==='anime'?'#4b285e':s.theme==='arcane'?'#123e58':s.theme==='magical'?'#496b65':'#202347');grad.addColorStop(.62,'#272849');grad.addColorStop(1,'#0b1020');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
  // moon / eclipse
- ctx.fillStyle='#c4b7ff22';ctx.beginPath();ctx.arc(690,100,60,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d4caffaa';ctx.beginPath();ctx.arc(690,100,35,0,Math.PI*2);ctx.fill();ctx.fillStyle='#24264a';ctx.beginPath();ctx.arc(708,88,34,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#c4b7ff22';ctx.beginPath();ctx.arc(900,125,90,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d4caffaa';ctx.beginPath();ctx.arc(900,125,52,0,Math.PI*2);ctx.fill();ctx.fillStyle='#24264a';ctx.beginPath();ctx.arc(926,108,51,0,Math.PI*2);ctx.fill();
  // distant spires
- ctx.fillStyle='#15182f';for(let i=0;i<8;i++){let x=i*130-20;ctx.beginPath();ctx.moveTo(x,275);ctx.lineTo(x+30,140+(i%3)*35);ctx.lineTo(x+58,275);ctx.fill()}
+ ctx.fillStyle='#15182f';for(let i=0;i<8;i++){let x=i*175-20;ctx.beginPath();ctx.moveTo(x,355);ctx.lineTo(x+40,170+(i%3)*40);ctx.lineTo(x+75,355);ctx.fill()}
  // floor plane
- ctx.fillStyle='#12162a';ctx.beginPath();ctx.moveTo(0,300);ctx.lineTo(w,300);ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.fill();
- ctx.strokeStyle='#38365e';ctx.lineWidth=1;for(let i=0;i<10;i++){let y=305+i*i*2.2;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}for(let x=-300;x<w+300;x+=100){ctx.beginPath();ctx.moveTo(w/2+(x-w/2)*.15,300);ctx.lineTo(x,h);ctx.stroke()}
+ ctx.fillStyle='#12162a';ctx.beginPath();ctx.moveTo(0,395);ctx.lineTo(w,395);ctx.lineTo(w,h);ctx.lineTo(0,h);ctx.fill();
+ ctx.strokeStyle='#38365e';ctx.lineWidth=1;for(let i=0;i<10;i++){let y=400+i*i*3.1;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}for(let x=-300;x<w+300;x+=100){ctx.beginPath();ctx.moveTo(w/2+(x-w/2)*.15,395);ctx.lineTo(x,h);ctx.stroke()}
  // hero silhouette with weapon
- let hx=250,hy=330;ctx.save();ctx.translate(hx,hy);let bob=Math.sin(t/260)*3;ctx.translate(0,bob);
+ let hx=315,hy=435;ctx.save();ctx.translate(hx,hy);ctx.scale(1.5,1.5);let bob=Math.sin(t/260)*3;ctx.translate(0,bob);
  ctx.fillStyle='#0008';ctx.beginPath();ctx.ellipse(0,52,55,13,0,0,Math.PI*2);ctx.fill();
  ctx.fillStyle=s.classId==='warrior'?'#484d78':s.classId==='ranger'?'#39756e':'#5c3e85';ctx.beginPath();ctx.moveTo(-23,-2);ctx.lineTo(-30,35);ctx.lineTo(24,35);ctx.lineTo(18,-3);ctx.closePath();ctx.fill();
  ctx.fillStyle='#24263d';ctx.fillRect(-22,30,15,28);ctx.fillRect(8,30,15,28);
@@ -225,15 +227,17 @@ function drawScene(t){let w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
  else {ctx.strokeStyle='#d8a2ff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(37,7);ctx.lineTo(53,-28);ctx.stroke();ctx.fillStyle='#79eaff';ctx.beginPath();ctx.arc(53,-30,8,0,Math.PI*2);ctx.fill()}
  ctx.restore();
  // enemy
- let ex=630,ey=320,scale=s.stage%10===0?1.6:1;ctx.save();ctx.translate(ex,ey);ctx.scale(scale,scale);ctx.translate(0,Math.sin(t/180)*3);
+ let ex=840,ey=425,scale=s.stage%10===0?2.15:1.55;ctx.save();ctx.translate(ex,ey);ctx.scale(scale,scale);ctx.translate(0,Math.sin(t/180)*3);
  let hue=s.stage%10===0?'#ff5b8d':s.classId==='arcanist'?'#9a70ff':'#6ee1c6';ctx.fillStyle='#0007';ctx.beginPath();ctx.ellipse(0,47,65,14,0,0,Math.PI*2);ctx.fill();
  ctx.shadowColor=hue;ctx.shadowBlur=20;ctx.fillStyle=hue;ctx.beginPath();ctx.moveTo(-42,25);ctx.lineTo(-35,-15);ctx.lineTo(-15,-40);ctx.lineTo(0,-27);ctx.lineTo(17,-48);ctx.lineTo(39,-15);ctx.lineTo(45,25);ctx.quadraticCurveTo(0,55,-42,25);ctx.fill();ctx.shadowBlur=0;
  ctx.fillStyle='#17172b';ctx.beginPath();ctx.ellipse(-14,-5,5,9,0,0,Math.PI*2);ctx.ellipse(15,-5,5,9,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(-16,-7,3,4);ctx.fillRect(13,-7,3,4);
  ctx.strokeStyle='#ffdb8a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-28,-27);ctx.lineTo(-40,-47);ctx.moveTo(28,-27);ctx.lineTo(42,-49);ctx.stroke();
  ctx.restore();
  // attack particles
- if(attackFlash>0){ctx.globalAlpha=attackFlash;ctx.strokeStyle='#d9c5ff';ctx.lineWidth=5;ctx.beginPath();ctx.arc(445,260,55+(1-attackFlash)*80,-.8,1.2);ctx.stroke();ctx.globalAlpha=1;attackFlash=Math.max(0,attackFlash-.035)}
- ctx.fillStyle='#ffffff20';ctx.font='18px system-ui';ctx.fillText('ETAP '+s.stage,35,440);
+ if(attackFlash>0){ctx.globalAlpha=attackFlash;ctx.strokeStyle='#d9c5ff';ctx.lineWidth=5;ctx.beginPath();ctx.arc(590,345,70+(1-attackFlash)*110,-.8,1.2);ctx.stroke();ctx.globalAlpha=1;attackFlash=Math.max(0,attackFlash-.035)}
+ for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.14;p.life-=.025;ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=12;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();if(p.life<=0)particles.splice(i,1)}ctx.shadowBlur=0;ctx.globalAlpha=1;
+for(let i=floatTexts.length-1;i>=0;i--){const f=floatTexts[i];f.y-=1.7;f.life-=.02;ctx.globalAlpha=Math.max(0,f.life);ctx.font=(f.heavy?'bold 37px':'bold 28px')+' system-ui';ctx.textAlign='center';ctx.strokeStyle='#131324';ctx.lineWidth=5;ctx.strokeText(f.value,f.x,f.y);ctx.fillStyle=f.heavy?'#ffb9ff':'#ffe39c';ctx.fillText(f.value,f.x,f.y);if(f.life<=0)floatTexts.splice(i,1)}ctx.globalAlpha=1;ctx.textAlign='start';
+ctx.fillStyle='#ffffff55';ctx.font='bold 24px system-ui';ctx.fillText('ETAP '+s.stage,42,585);ctx.restore();
  requestAnimationFrame(drawScene)}
 let autoOpenElapsed=0;
 function loop(now){let dt=Math.min(.25,(now-lastFrame)/1000);lastFrame=now;
