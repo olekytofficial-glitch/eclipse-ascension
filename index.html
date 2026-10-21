@@ -19,14 +19,14 @@ button,select{font:inherit;color:inherit;background:#252b49;border:1px solid #44
 <body>
 <div class="app" id="app">
   <header class="top">
-    <div><div class="brand">ECLIPSE<span>: ASCENSION</span></div><div class="muted tiny">Idle RPG • grywalny prototyp 1.0.4</div></div>
+    <div><div class="brand">ECLIPSE<span>: ASCENSION</span></div><div class="muted tiny">Idle RPG • grywalny prototyp 1.0.5</div></div>
     <div class="resources">
       <div class="pill">🪙 <b id="gold">0</b></div>
       <div class="pill">✦ <b id="essence">0</b> esencji</div>
       <div class="pill">⚔️ <b id="power">0</b> mocy</div>
     </div>
   </header>
-  <div class="notice" style="background:#173b36;border-color:#4db99e;color:#d8fff5;font-weight:700">✅ AKTUALIZACJA ONLINE DZIAŁA! ECLIPSE v1.0.4 — Naprawa animacji i resetu 🎉</div>
+  <div class="notice" style="background:#173b36;border-color:#4db99e;color:#d8fff5;font-weight:700">✅ AKTUALIZACJA ONLINE DZIAŁA! ECLIPSE v1.0.5 — Nowy silnik pocisków 🎉</div>
   <div class="notice tiny">Prototyp mechanik • ADMIN Auto Click: Opcje — zapis lokalny w tej przeglądarce. Postęp offline jest naliczany przy ponownym otwarciu gry. Skrzynki wypadają tylko za bossów pokonanych podczas aktywnej gry.</div>
   <main class="layout">
     <section class="panel">
@@ -96,7 +96,7 @@ button,select{font:inherit;color:inherit;background:#252b49;border:1px solid #44
       </div>
     </section>
   </main>
-  <div class="footer">ECLIPSE: Ascension • MVP 1.0.4 • robocza nazwa i oryginalne zasady gry</div>
+  <div class="footer">ECLIPSE: Ascension • MVP 1.0.5 • robocza nazwa i oryginalne zasady gry</div>
 </div>
 <script>
 (()=>{
@@ -124,8 +124,8 @@ let s={
  classId:'warrior',weaponIndex:0,damageLevel:0,autoLevel:0,skillUnlocked:{class:true,shadow:false,focus:false,frenzy:false},
  skillCooldown:0,heroHp:100,heroMaxHp:100,theme:'dark',lastSeen:Date.now(),questsClaimed:{},questProgress:{},autoDamage:0,focusUntil:0,frenzyUntil:0,adminAuto:false,adminPrestige:false,adminOpen:false,adminRate:25,adminClickBuffer:0,shadowCooldown:0,chests:0,inventory:[],equipment:{warrior:{},ranger:{},arcanist:{}},highestStage:1
 };
-let enemyTick=0, lastFrame=performance.now(), attackFlash=0;const adminMode=new URLSearchParams(location.search).get('admin')==='1';let resettingGame=false;const projectiles=[];let lastProjectileAt=0;let autoAttackElapsed=0;const particles=[];const floatTexts=[];let screenShake=0;let lastEffectTime=0;
-function launchProjectile(source){const now=performance.now();if(source==='auto'&&now-lastProjectileAt<1200)return;if(source==='ADMIN Auto Click'&&now-lastProjectileAt<320)return;lastProjectileAt=now;const kind=s.classId==='ranger'?'arrow':s.classId==='arcanist'?'orb':'slash';const n=source==='skill'?(kind==='arrow'?8:kind==='orb'?6:4):1;for(let i=0;i<n;i++){const spread=n>1?(i-(n-1)/2)*14:0;projectiles.push({start:now+i*(source==='skill'?48:0),duration:kind==='slash'?320:kind==='arrow'?1250:1100,fromX:kind==='slash'?410:375,fromY:kind==='slash'?398:380+spread*.35,toX:kind==='slash'?815:870,toY:kind==='slash'?400:395+spread,kind,color:source==='skill'?'#ffc7ff':kind==='arrow'?'#9affda':'#91baff',heavy:source==='skill'});}if(projectiles.length>75)projectiles.splice(0,projectiles.length-75)}
+let enemyTick=0, lastFrame=performance.now(), attackFlash=0;const adminMode=new URLSearchParams(location.search).get('admin')==='1';let resettingGame=false;const projectiles=[];let lastProjectileAt=0;let previousSceneFrame=0;let sceneWeaponKey='';let autoAttackElapsed=0;const particles=[];const floatTexts=[];let screenShake=0;let lastEffectTime=0;
+function launchProjectile(source){const now=performance.now();if(source==='auto'&&now-lastProjectileAt<1200)return;if(source==='ADMIN Auto Click'&&now-lastProjectileAt<320)return;lastProjectileAt=now;const kind=s.classId==='ranger'?(s.weaponIndex===1?'bolt':'arrow'):s.classId==='arcanist'?(s.weaponIndex===1?'ether':'orb'):(s.weaponIndex===1?'greatslash':'slash');const n=source==='skill'?(kind==='arrow'?8:kind==='orb'?6:4):1;for(let i=0;i<n;i++){const spread=n>1?(i-(n-1)/2)*14:0;projectiles.push({age:-(i*(source==='skill'?0.065:0)),duration:(kind==='slash'||kind==='greatslash')?.5:(kind==='arrow'||kind==='bolt')?1.25:1.1,fromX:(kind==='slash'||kind==='greatslash')?410:375,fromY:(kind==='slash'||kind==='greatslash')?398:380+spread*.35,toX:(kind==='slash'||kind==='greatslash')?815:870,toY:(kind==='slash'||kind==='greatslash')?400:395+spread,kind,color:source==='skill'?'#ffc7ff':(kind==='arrow'||kind==='bolt')?'#9affda':'#91baff',heavy:source==='skill'});}if(projectiles.length>75)projectiles.splice(0,projectiles.length-75)}
 function combatEffect(amount,source){const now=performance.now();if(now-lastEffectTime<65)return;lastEffectTime=now;const x=840,y=405;const heavy=source==='skill';screenShake=Math.min(15,screenShake+(heavy?10:3));for(let i=0;i<(heavy?22:9);i++){const angle=Math.random()*Math.PI*2,speed=(heavy?3.8:2.5)+Math.random()*4;particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:1,color:heavy?'#e3a2ff':Math.random()<.5?'#ffe3a2':'#6eece5',size:2+Math.random()*5})}floatTexts.push({x:x+(Math.random()-.5)*70,y:y-80,value:fmt(amount),life:1,heavy});if(particles.length>170)particles.splice(0,particles.length-170);if(floatTexts.length>18)floatTexts.shift()}
 const questDefs=[
  {id:'clicks100',name:'Palec wojownika',desc:'Wykonaj 100 kliknięć.',goal:100,key:'clicks',reward:150,kind:'gold'},
@@ -210,8 +210,8 @@ $('adminAutoBtn').onclick=()=>{s.adminAuto=!s.adminAuto;pushLog(s.adminAuto?'ADM
 $('adminRate').onchange=e=>{s.adminRate=Number(e.target.value);render()};
 $('healBtn').onclick=()=>{if(s.gold>=50){s.gold-=50;s.heroHp=s.heroMaxHp;pushLog('Odnowiono życie.');render()}};
 $('saveBtn').onclick=save;
-$('classSelect').onchange=e=>{s.classId=e.target.value;s.weaponIndex=0;s.skillCooldown=0;projectiles.length=0;particles.length=0;floatTexts.length=0;attackFlash=0;lastProjectileAt=0;autoAttackElapsed=0;pushLog('Zmieniono klasę na '+cls().name+'.');render()};
-$('weaponBtn').onclick=()=>{s.weaponIndex=(s.weaponIndex+1)%cls().weapons.length;s.skillCooldown=0;pushLog('Wyposażono: '+cls().weapons[s.weaponIndex]+'.');render()};
+$('classSelect').onchange=e=>{s.classId=e.target.value;s.weaponIndex=0;s.skillCooldown=0;projectiles.length=0;particles.length=0;floatTexts.length=0;attackFlash=0;lastProjectileAt=0;autoAttackElapsed=0;sceneWeaponKey='';pushLog('Zmieniono klasę na '+cls().name+'.');render()};
+$('weaponBtn').onclick=()=>{s.weaponIndex=(s.weaponIndex+1)%cls().weapons.length;s.skillCooldown=0;projectiles.length=0;sceneWeaponKey='';lastProjectileAt=0;pushLog('Wyposażono: '+cls().weapons[s.weaponIndex]+'.');render()};
 $('upgradeBtn').onclick=()=>{let c=Math.floor(25*Math.pow(1.7,s.damageLevel));if(s.gold>=c){s.gold-=c;s.damageLevel++;s.level++;render()}else pushLog('Za mało złota na ulepszenie.')};
 $('autoBtn').onclick=()=>{let c=Math.floor(40*Math.pow(1.7,s.autoLevel));if(s.gold>=c){s.gold-=c;s.autoLevel++;render()}else pushLog('Za mało złota na ulepszenie autoataku.')};
 function doPrestige(){if(s.stage<10)return;let baseGain=Math.max(1,Math.floor(s.stage/2));let gain=Math.ceil(baseGain*(1+relicLevel('essence')*.20));s.essence+=gain;s.totalEssence+=gain;s.gold=0;s.stage=1;s.damageLevel=0;s.autoLevel=0;s.level=1;setStage(1);pushLog(`Ascension! Zdobyto ${gain} esencji.`);render()}
@@ -222,7 +222,7 @@ $('resetBtn').onclick=()=>{if(!adminMode)return;if(confirm('ADMIN: na pewno bezp
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
 window.addEventListener('keydown',e=>{if(e.code==='Space'&&!['BUTTON','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();manualAttack()}if(e.key.toLowerCase()==='q')useSkill();if(e.key.toLowerCase()==='e')useFrenzy();if(e.key.toLowerCase()==='r')useShadow()});
 const canvas=$('scene'),ctx=canvas.getContext('2d');
-function drawScene(t){let w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.save();ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);screenShake*=.83;if(screenShake<.15)screenShake=0;
+function drawScene(t){const dt=previousSceneFrame?Math.min(.08,Math.max(0,(t-previousSceneFrame)/1000)):0;previousSceneFrame=t;const currentKey=s.classId+':'+s.weaponIndex;if(sceneWeaponKey!==currentKey){projectiles.length=0;sceneWeaponKey=currentKey;}let w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.save();ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);screenShake*=.83;if(screenShake<.15)screenShake=0;
  let grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,s.theme==='anime'?'#4b285e':s.theme==='arcane'?'#123e58':s.theme==='magical'?'#496b65':'#202347');grad.addColorStop(.62,'#272849');grad.addColorStop(1,'#0b1020');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
  // moon / eclipse
  ctx.fillStyle='#c4b7ff22';ctx.beginPath();ctx.arc(900,125,90,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d4caffaa';ctx.beginPath();ctx.arc(900,125,52,0,Math.PI*2);ctx.fill();ctx.fillStyle='#24264a';ctx.beginPath();ctx.arc(926,108,51,0,Math.PI*2);ctx.fill();
@@ -239,9 +239,9 @@ function drawScene(t){let w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
  ctx.fillStyle='#d9c8ff';ctx.beginPath();ctx.arc(0,-20,17,0,Math.PI*2);ctx.fill();
  ctx.fillStyle='#171a2d';ctx.beginPath();ctx.arc(0,-25,19,Math.PI,Math.PI*2);ctx.fill();ctx.fillRect(-19,-25,38,8);
  ctx.strokeStyle=s.classId==='warrior'?'#dce4ff':s.classId==='ranger'?'#8dffdc':'#d8a2ff';ctx.lineWidth=6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(15,3);ctx.lineTo(33,19);ctx.stroke();
- if(s.classId==='warrior'){ctx.strokeStyle='#d6e2ff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(32,18);ctx.lineTo(65,-25);ctx.stroke();ctx.strokeStyle='#a6b4ff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(28,17);ctx.lineTo(37,8);ctx.stroke()}
- else if(s.classId==='ranger'){ctx.strokeStyle='#8fffe2';ctx.lineWidth=4;ctx.beginPath();ctx.arc(38,8,22,-1.3,1.3);ctx.stroke();ctx.beginPath();ctx.moveTo(38,-12);ctx.lineTo(38,28);ctx.stroke()}
- else {ctx.strokeStyle='#d8a2ff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(37,7);ctx.lineTo(53,-28);ctx.stroke();ctx.fillStyle='#79eaff';ctx.beginPath();ctx.arc(53,-30,8,0,Math.PI*2);ctx.fill()}
+ if(s.classId==='warrior'){ctx.strokeStyle='#d6e2ff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(32,18);ctx.lineTo(s.weaponIndex===1?85:65,s.weaponIndex===1?-45:-25);ctx.stroke();ctx.strokeStyle='#a6b4ff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(28,17);ctx.lineTo(37,8);ctx.stroke()}
+ else if(s.classId==='ranger'){ctx.strokeStyle='#8fffe2';ctx.lineWidth=s.weaponIndex===1?8:4;ctx.beginPath();if(s.weaponIndex===1){ctx.moveTo(22,-10);ctx.lineTo(65,20);ctx.moveTo(20,22);ctx.lineTo(64,-12)}else{ctx.arc(38,8,22,-1.3,1.3)}ctx.stroke();ctx.beginPath();ctx.moveTo(38,-12);ctx.lineTo(38,28);ctx.stroke()}
+ else {ctx.strokeStyle='#d8a2ff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(37,7);ctx.lineTo(53,-28);ctx.stroke();ctx.fillStyle='#79eaff';ctx.beginPath();ctx.arc(53,-30,s.weaponIndex===1?5:8,0,Math.PI*2);ctx.fill()}
  ctx.restore();
  // enemy
  let ex=840,ey=425,scale=s.stage%10===0?2.15:1.55;ctx.save();ctx.translate(ex,ey);ctx.scale(scale,scale);ctx.translate(0,Math.sin(t/180)*3);
@@ -251,7 +251,7 @@ function drawScene(t){let w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
  ctx.strokeStyle='#ffdb8a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-28,-27);ctx.lineTo(-40,-47);ctx.moveTo(28,-27);ctx.lineTo(42,-49);ctx.stroke();
  ctx.restore();
  // Time-based projectile animation; combat damage is independent of animation speed.
- for(let i=projectiles.length-1;i>=0;i--){const p=projectiles[i];const progress=(performance.now()-p.start)/p.duration;if(progress<0)continue;if(progress>=1){projectiles.splice(i,1);continue}const ease=progress;const x=p.fromX+(p.toX-p.fromX)*ease;const y=p.fromY+(p.toY-p.fromY)*ease-22*Math.sin(Math.PI*progress);ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(p.toY-p.fromY,p.toX-p.fromX));ctx.globalAlpha=Math.min(1,(1-progress)*5);ctx.shadowColor=p.color;ctx.shadowBlur=p.heavy?28:18;if(p.kind==='arrow'){ctx.strokeStyle='#e8d8ae';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-65,0);ctx.lineTo(5,0);ctx.stroke();ctx.fillStyle=p.color;ctx.beginPath();ctx.moveTo(19,0);ctx.lineTo(0,-10);ctx.lineTo(0,10);ctx.closePath();ctx.fill();ctx.strokeStyle='#c4a0ff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-58,-13);ctx.lineTo(-44,0);ctx.lineTo(-58,13);ctx.stroke();ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-125,0);ctx.lineTo(-70,0);ctx.stroke()}else if(p.kind==='orb'){ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(0,0,p.heavy?18:13,0,Math.PI*2);ctx.fill();ctx.strokeStyle=p.color;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-100,0);ctx.lineTo(-15,0);ctx.stroke()}else{ctx.strokeStyle=p.color;ctx.lineWidth=p.heavy?15:9;ctx.beginPath();ctx.moveTo(-90,-25);ctx.quadraticCurveTo(0,-60,40,25);ctx.stroke()}ctx.restore()}
+ for(let i=projectiles.length-1;i>=0;i--){const p=projectiles[i];p.age+=dt;const progress=p.age/p.duration;if(progress<0)continue;if(progress>=1){projectiles.splice(i,1);continue}const ease=progress;const x=p.fromX+(p.toX-p.fromX)*ease;const y=p.fromY+(p.toY-p.fromY)*ease-22*Math.sin(Math.PI*progress);ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(p.toY-p.fromY,p.toX-p.fromX));ctx.globalAlpha=Math.min(1,(1-progress)*5);ctx.shadowColor=p.color;ctx.shadowBlur=p.heavy?28:18;if(p.kind==='arrow'||p.kind==='bolt'){ctx.strokeStyle='#e8d8ae';ctx.lineWidth=p.kind==='bolt'?8:5;ctx.beginPath();ctx.moveTo(p.kind==='bolt'?-38:-65,0);ctx.lineTo(5,0);ctx.stroke();ctx.fillStyle=p.color;ctx.beginPath();ctx.moveTo(19,0);ctx.lineTo(0,-10);ctx.lineTo(0,10);ctx.closePath();ctx.fill();ctx.strokeStyle='#c4a0ff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-58,-13);ctx.lineTo(-44,0);ctx.lineTo(-58,13);ctx.stroke();ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-125,0);ctx.lineTo(-70,0);ctx.stroke()}else if(p.kind==='orb'||p.kind==='ether'){ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(0,0,p.heavy?18:(p.kind==='ether'?7:13),0,Math.PI*2);ctx.fill();ctx.strokeStyle=p.color;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-100,0);ctx.lineTo(-15,0);ctx.stroke()}else{ctx.strokeStyle=p.color;ctx.lineWidth=p.heavy?15:(p.kind==='greatslash'?13:9);ctx.beginPath();ctx.moveTo(-90,-25);ctx.quadraticCurveTo(0,-60,40,25);ctx.stroke()}ctx.restore()}
  // attack particles
  if(attackFlash>0){ctx.globalAlpha=attackFlash;ctx.strokeStyle='#d9c5ff';ctx.lineWidth=5;ctx.beginPath();ctx.arc(590,345,70+(1-attackFlash)*110,-.8,1.2);ctx.stroke();ctx.globalAlpha=1;attackFlash=Math.max(0,attackFlash-.035)}
  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.14;p.life-=.025;ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=12;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();if(p.life<=0)particles.splice(i,1)}ctx.shadowBlur=0;ctx.globalAlpha=1;
