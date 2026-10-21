@@ -13,25 +13,26 @@ button,select{font:inherit;color:inherit;background:#252b49;border:1px solid #44
 
 .equipment-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}.equipment-slot{min-height:105px;padding:12px;background:#191f37;border:1px solid #3c476c;border-radius:12px}.equipment-slot b{display:block}.equipment-slot button{margin-top:8px}.bag-item{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;margin:8px 0;background:#1b213b;border:1px solid #3c476c;border-radius:12px;flex-wrap:wrap}.bag-item button{margin-left:5px}.rarity-legendary{border-color:#e2a84b}.rarity-mythic{border-color:#ed70d5}.rarity-epic{border-color:#ae84ff}.rarity-rare{border-color:#5a9eff}@media(max-width:650px){.equipment-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .scene{height:clamp(540px,65vh,860px)}#scene{width:100%;height:100%;display:block;object-fit:fill}.scene-overlay{pointer-events:none}.combatbar button{min-height:52px;font-size:19px}.scene::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 90px #0008}.panel{box-shadow:0 20px 60px #0007}@media(max-width:800px){.scene{height:540px}}
+.arena-skills{position:absolute;z-index:5;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:stretch;max-width:95%;pointer-events:auto}.arena-skill{position:relative;min-width:114px;min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:linear-gradient(145deg,#292044ef,#12152cf5);border:2px solid #866bd1;border-radius:14px;color:#f8eeff;font-weight:800;box-shadow:0 0 24px #8057da55;cursor:pointer}.arena-skill:disabled{opacity:.52;filter:grayscale(.55);cursor:not-allowed}.skill-key{position:absolute;top:4px;left:8px;font-size:13px;color:#ffd888}.skill-timer{font-size:12px;color:#ffcc89}.arena-skill:not(:disabled):hover{border-color:#f3c7ff;transform:translateY(-2px)}@media(max-width:650px){.arena-skill{min-width:83px;min-height:68px;font-size:12px}.arena-skills{gap:5px}}
 </style>
 </head>
 <body>
 <div class="app" id="app">
   <header class="top">
-    <div><div class="brand">ECLIPSE<span>: ASCENSION</span></div><div class="muted tiny">Idle RPG • grywalny prototyp 0.9.1</div></div>
+    <div><div class="brand">ECLIPSE<span>: ASCENSION</span></div><div class="muted tiny">Idle RPG • grywalny prototyp 1.0</div></div>
     <div class="resources">
       <div class="pill">🪙 <b id="gold">0</b></div>
       <div class="pill">✦ <b id="essence">0</b> esencji</div>
       <div class="pill">⚔️ <b id="power">0</b> mocy</div>
     </div>
   </header>
-  <div class="notice" style="background:#173b36;border-color:#4db99e;color:#d8fff5;font-weight:700">✅ AKTUALIZACJA ONLINE DZIAŁA! ECLIPSE v0.9.1 — Relikt esencji 🎉</div>
+  <div class="notice" style="background:#173b36;border-color:#4db99e;color:#d8fff5;font-weight:700">✅ AKTUALIZACJA ONLINE DZIAŁA! ECLIPSE v1.0 — Skille na arenie i animacje ataków 🎉</div>
   <div class="notice tiny">Prototyp mechanik • ADMIN Auto Click: Opcje — zapis lokalny w tej przeglądarce. Postęp offline jest naliczany przy ponownym otwarciu gry. Skrzynki wypadają tylko za bossów pokonanych podczas aktywnej gry.</div>
   <main class="layout">
     <section class="panel">
       <div class="panelhead"><b>⚔️ Pole bitwy</b><span class="muted tiny" id="classLabel">Warrior</span></div>
       <div class="scene"><canvas id="scene" width="1200" height="640" aria-label="Scena walki"></canvas>
-        <div class="scene-overlay"><div class="stage"><b id="stage">Etap 1</b><div class="tiny muted" id="enemyName">Pustynny szlam</div></div>
+        <div class="arena-skills"><button id="arenaSkillQ" class="arena-skill" title="Q: skill broni"><span class="skill-key">Q</span><span id="arenaSkillQName">⚔️ Skill</span><span class="skill-timer" id="arenaSkillQTimer"></span></button><button id="arenaSkillE" class="arena-skill" title="E: Szał (po odblokowaniu)"><span class="skill-key">E</span><span>⚡ Szał</span><span class="skill-timer" id="arenaSkillETimer"></span></button><button id="arenaSkillR" class="arena-skill" title="R: Cień Ascendenta (po odblokowaniu)"><span class="skill-key">R</span><span>🌑 Cień</span><span class="skill-timer" id="arenaSkillRTimer"></span></button></div><div class="scene-overlay"><div class="stage"><b id="stage">Etap 1</b><div class="tiny muted" id="enemyName">Pustynny szlam</div></div>
         <div class="stage"><div class="tiny">ŻYCIE PRZECIWNIKA</div><div class="bossbar"><div id="bossFill"></div></div><div class="tiny" id="bossHp">100 / 100</div></div></div>
       </div>
       <div class="combatbar">
@@ -95,7 +96,7 @@ button,select{font:inherit;color:inherit;background:#252b49;border:1px solid #44
       </div>
     </section>
   </main>
-  <div class="footer">ECLIPSE: Ascension • MVP 0.9.1 • robocza nazwa i oryginalne zasady gry</div>
+  <div class="footer">ECLIPSE: Ascension • MVP 1.0 • robocza nazwa i oryginalne zasady gry</div>
 </div>
 <script>
 (()=>{
@@ -121,9 +122,10 @@ const skillDefs=[
 let s={
  gold:0,essence:0,totalEssence:0,relics:{},autoEquip:true,stage:1,bossHp:100,bossMax:100,clicks:0,kills:0,bosses:0,level:1,
  classId:'warrior',weaponIndex:0,damageLevel:0,autoLevel:0,skillUnlocked:{class:true,shadow:false,focus:false,frenzy:false},
- skillCooldown:0,heroHp:100,heroMaxHp:100,theme:'dark',lastSeen:Date.now(),questsClaimed:{},questProgress:{},autoDamage:0,focusUntil:0,frenzyUntil:0,adminAuto:false,adminPrestige:false,adminOpen:false,adminRate:25,adminClickBuffer:0,chests:0,inventory:[],equipment:{warrior:{},ranger:{},arcanist:{}},highestStage:1
+ skillCooldown:0,heroHp:100,heroMaxHp:100,theme:'dark',lastSeen:Date.now(),questsClaimed:{},questProgress:{},autoDamage:0,focusUntil:0,frenzyUntil:0,adminAuto:false,adminPrestige:false,adminOpen:false,adminRate:25,adminClickBuffer:0,shadowCooldown:0,chests:0,inventory:[],equipment:{warrior:{},ranger:{},arcanist:{}},highestStage:1
 };
-let enemyTick=0, lastFrame=performance.now(), attackFlash=0;const particles=[];const floatTexts=[];let screenShake=0;let lastEffectTime=0;
+let enemyTick=0, lastFrame=performance.now(), attackFlash=0;const projectiles=[];let lastProjectileAt=0;const particles=[];const floatTexts=[];let screenShake=0;let lastEffectTime=0;
+function launchProjectile(source){const now=performance.now();if(source==='auto'&&now-lastProjectileAt<180)return;if(source==='ADMIN Auto Click'&&now-lastProjectileAt<110)return;lastProjectileAt=now;const kind=s.classId==='ranger'?'arrow':s.classId==='arcanist'?'orb':'slash';const n=source==='skill'?(s.classId==='ranger'?8:s.classId==='arcanist'?6:4):1;for(let i=0;i<n;i++){projectiles.push({x:385,y:402+(Math.random()-.5)*22,vx:kind==='slash'?17:14+Math.random()*4,vy:(Math.random()-.5)*(source==='skill'?5:1.5),kind,life:0,color:source==='skill'?'#ffdcff':kind==='arrow'?'#a5ffe1':'#a9bfff'});}if(projectiles.length>110)projectiles.splice(0,projectiles.length-110)}
 function combatEffect(amount,source){const now=performance.now();if(now-lastEffectTime<65)return;lastEffectTime=now;const x=840,y=405;const heavy=source==='skill';screenShake=Math.min(15,screenShake+(heavy?10:3));for(let i=0;i<(heavy?22:9);i++){const angle=Math.random()*Math.PI*2,speed=(heavy?3.8:2.5)+Math.random()*4;particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:1,color:heavy?'#e3a2ff':Math.random()<.5?'#ffe3a2':'#6eece5',size:2+Math.random()*5})}floatTexts.push({x:x+(Math.random()-.5)*70,y:y-80,value:fmt(amount),life:1,heavy});if(particles.length>170)particles.splice(0,particles.length-170);if(floatTexts.length>18)floatTexts.shift()}
 const questDefs=[
  {id:'clicks100',name:'Palec wojownika',desc:'Wykonaj 100 kliknięć.',goal:100,key:'clicks',reward:150,kind:'gold'},
@@ -148,16 +150,19 @@ function load(){try{let raw=localStorage.getItem('eclipseAscensionSave');if(raw)
  s.lastSeen=Date.now();}
 function enemyMax(){return Math.floor(100*Math.pow(1.18,s.stage-1)*(s.stage%10===0?4:1))}
 function setStage(n){s.stage=n;s.highestStage=Math.max(s.highestStage||1,n);s.bossMax=enemyMax();s.bossHp=s.bossMax;pushLog(`Rozpoczęto etap ${s.stage}: ${enemyLabel()}.`);render()}
-function hit(amount,source='atak'){if(s.bossHp<=0)return;s.bossHp-=amount;attackFlash=1;combatEffect(amount,source);if(s.bossHp<=0){s.bossHp=0;s.gold+=Math.floor(12+s.stage*4);s.kills++;if(s.stage%10===0){s.bosses++;s.chests=(s.chests||0)+1;s.gold+=Math.floor(s.stage*20);pushLog('Boss pokonany! +1 skrzynka. Otwórz ją w zakładce Skrzynki!')}else pushLog(`${enemyLabel()} pokonany.`);checkUnlocks();setStage(s.stage+1)}else renderCombat()}
+function hit(amount,source='atak'){if(s.bossHp<=0)return;s.bossHp-=amount;attackFlash=1;launchProjectile(source);combatEffect(amount,source);if(s.bossHp<=0){s.bossHp=0;s.gold+=Math.floor(12+s.stage*4);s.kills++;if(s.stage%10===0){s.bosses++;s.chests=(s.chests||0)+1;s.gold+=Math.floor(s.stage*20);pushLog('Boss pokonany! +1 skrzynka. Otwórz ją w zakładce Skrzynki!')}else pushLog(`${enemyLabel()} pokonany.`);checkUnlocks();setStage(s.stage+1)}else renderCombat()}
 function manualAttack(){s.clicks++;let bonus=s.skillUnlocked.focus?1.5:1;hit(damage()*bonus,'klik');checkUnlocks();renderStats();renderQuests();if(s.clicks%25===0)save()}
 function useSkill(){if(s.skillCooldown>0){pushLog(`Skill gotowy za ${Math.ceil(s.skillCooldown)} s.`);return}
  const w=weapon();const dmg=Math.floor(damage()*w.scale*(s.skillUnlocked.shadow?1.3:1));
  hit(dmg,'skill');s.skillCooldown=w.cd;
  pushLog(`${w.skill}: ${w.shots} ${w.shots===1?'trafienie':'trafień'}, ${fmt(dmg)} obrażeń!`);
  if(s.skillUnlocked.shadow)pushLog('Cień Ascendenta wzmocnił umiejętność o 30%.');
- if(s.skillUnlocked.frenzy)s.frenzyUntil=performance.now()+5000;
+
  render()}
 
+function useFrenzy(){if(!s.skillUnlocked.frenzy){pushLog('Odblokuj Szał w zakładce Skille.');return}if(performance.now()<s.frenzyUntil)return;s.frenzyUntil=performance.now()+6000;pushLog('⚡ Szał: 6 sekund podwójnego autoataku!');render()}
+function useShadow(){if(!s.skillUnlocked.shadow){pushLog('Odblokuj Cień Ascendenta po 10 000 kliknięć.');return}if(s.shadowCooldown>0)return;s.shadowCooldown=18;hit(damage()*12,'skill');pushLog('🌑 Cień Ascendenta: potężny atak cienia!');render()}
+function renderArenaSkills(){const q=$('arenaSkillQ'),e=$('arenaSkillE'),r=$('arenaSkillR');$('arenaSkillQName').textContent=weapon().skill;q.disabled=s.skillCooldown>0;$('arenaSkillQTimer').textContent=s.skillCooldown>0?Math.ceil(s.skillCooldown)+'s':'GOTOWY';const frenzy=s.skillUnlocked.frenzy&&performance.now()>=s.frenzyUntil;e.disabled=!frenzy;$('arenaSkillETimer').textContent=!s.skillUnlocked.frenzy?'ZABLOK.':performance.now()<s.frenzyUntil?'AKTYWNY':'GOTOWY';r.disabled=!s.skillUnlocked.shadow||s.shadowCooldown>0;$('arenaSkillRTimer').textContent=!s.skillUnlocked.shadow?'ZABLOK.':s.shadowCooldown>0?Math.ceil(s.shadowCooldown)+'s':'GOTOWY'}
 function checkUnlocks(){if(s.clicks>=10000&&!s.skillUnlocked.shadow){s.skillUnlocked.shadow=true;pushLog('ODblokowano Cień Ascendenta!');}if(s.stage>=10)$('prestigeBtn').disabled=false}
 function claimQuest(q){if(s.questsClaimed[q.id])return;let val=q.key==='stage'?s.stage:s[q.key];if(val<q.goal)return;s.questsClaimed[q.id]=true;if(q.kind==='gold')s.gold+=q.reward;if(q.kind==='essence')s.essence+=q.reward;if(q.kind==='unlock'){s.skillUnlocked.shadow=true;pushLog('Cień Ascendenta odblokowany przez quest!')}pushLog('Odebrano nagrodę: '+q.name);render()}
 function renderQuests(){let el=$('questList');el.innerHTML='';questDefs.forEach(q=>{let val=q.key==='stage'?s.stage:s[q.key]||0;let done=val>=q.goal,claimed=!!s.questsClaimed[q.id];let reward=q.kind==='gold'?fmt(q.reward)+' złota':q.kind==='essence'?q.reward+' esencji':'Cień Ascendenta';let d=document.createElement('div');d.className='quest';d.innerHTML=`<div class="qtop"><b>${q.name}</b><span class="tiny gold">${claimed?'ODEBRANO':done?'GOTOWE':'W TOKU'}</span></div><div class="tiny muted">${q.desc}</div><div class="progress"><div style="width:${Math.min(100,val/q.goal*100)}%"></div></div><div class="qtop tiny"><span>${fmt(Math.min(val,q.goal))} / ${fmt(q.goal)}</span><span>Nagroda: ${reward}</span></div><button style="margin-top:7px;width:100%" ${!done||claimed?'disabled':''}>${claimed?'Odebrano':done?'Odbierz nagrodę':'Kontynuuj'}</button>`;d.querySelector('button').onclick=()=>claimQuest(q);el.appendChild(d)})}
@@ -174,9 +179,11 @@ function gearStats(){const ids=equippedIds();const total={attack:0,critRate:0,cr
 function inventoryBonus(){return 0}
 function relicLevel(id){return Math.max(0,Number((s.relics||{})[id])||0)}
 const relicDefs=[{id:'power',name:'💠 Rdzeń Ascendenta',desc:'+8% obrażeń za poziom',base:5},{id:'blade',name:'⚔️ Ostrze Wieczności',desc:'+6 bazowych obrażeń za poziom',base:4},{id:'haste',name:'⚡ Zegar Pustki',desc:'+3% szybkości ataku za poziom',base:6},{id:'luck',name:'🎯 Oko Losu',desc:'+2% szansy na trafienie krytyczne za poziom',base:8},{id:'fury',name:'💥 Serce Furii',desc:'+10% obrażeń krytycznych za poziom',base:7},{id:'essence',name:'🌌 Kryształ Wiecznej Esencji',desc:'+20% esencji za każdy prestiż na poziom (zaokrąglenie w górę)',base:10}];
-function relicCost(def){return Math.ceil(def.base*Math.pow(1.65,relicLevel(def.id)))}
-function buyRelic(id){const def=relicDefs.find(x=>x.id===id);if(!def)return;const cost=relicCost(def);if(s.essence<cost){pushLog('Za mało esencji na ten relikt.');return}s.essence-=cost;s.relics[id]=relicLevel(id)+1;pushLog(`Kupiono ${def.name}, poziom ${s.relics[id]} za ${cost} esencji.`);render();saveSilent()}
-function renderRelics(){const root=$('relicShop');root.replaceChildren();for(const def of relicDefs){const d=document.createElement('div');d.className='equip';const info=document.createElement('div');const b=document.createElement('b');b.textContent=def.name+' • poziom '+relicLevel(def.id);info.appendChild(b);const desc=document.createElement('div');desc.className='tiny muted';desc.textContent=def.desc+(def.id==='essence'?' • aktualnie +'+(relicLevel('essence')*20)+'% esencji':'');info.appendChild(desc);d.appendChild(info);const btn=document.createElement('button');btn.textContent='Kup • '+fmt(relicCost(def))+' ✨';btn.disabled=s.essence<relicCost(def);btn.onclick=()=>buyRelic(def.id);d.appendChild(btn);root.appendChild(d)}}
+function relicCostAt(def,level){return Math.ceil(def.base*Math.pow(1.65,level))}
+function relicCost(def){return relicCostAt(def,relicLevel(def.id))}
+function relicBatch(def,amount){let cost=0,count=0,level=relicLevel(def.id);const max=amount==='max'?100000:amount;while(count<max){const next=relicCostAt(def,level+count);if(!Number.isFinite(next)||cost+next>s.essence)break;cost+=next;count++}return {cost,count}}
+function buyRelic(id,amount=1){const def=relicDefs.find(x=>x.id===id);if(!def)return;const {cost,count}=relicBatch(def,amount);if(!count){pushLog('Za mało esencji na zakup reliktu.');return}s.essence-=cost;s.relics[id]=relicLevel(id)+count;pushLog(`Ulepszono ${def.name} o ${count} poziomów (poziom ${s.relics[id]}) za ${fmt(cost)} esencji.`);render();saveSilent()}
+function renderRelics(){const root=$('relicShop');root.replaceChildren();for(const def of relicDefs){const d=document.createElement('div');d.className='equip';d.style.flexWrap='wrap';const info=document.createElement('div');info.style.flex='1 1 180px';const b=document.createElement('b');b.textContent=def.name+' • LVL '+relicLevel(def.id);info.appendChild(b);const desc=document.createElement('div');desc.className='tiny muted';desc.textContent=def.desc+(def.id==='essence'?' • obecnie +'+relicLevel('essence')*20+'%':'');info.appendChild(desc);d.appendChild(info);const controls=document.createElement('div');controls.className='actionrow';for(const [label,amount] of [['x1',1],['x10',10],['x100',100],['MAX','max']]){const offer=relicBatch(def,amount);const btn=document.createElement('button');btn.textContent=label+' • '+(offer.count?fmt(offer.cost):'—')+' ✨';btn.disabled=!offer.count;btn.title='Zakup '+offer.count+' poziomów';btn.onclick=()=>buyRelic(def.id,amount);controls.appendChild(btn)}d.appendChild(controls);root.appendChild(d)}}
 function itemScore(item){const st=item.stats||{attack:Number(item.bonus)||0};return (Number(st.attack)||0)*1.3+(Number(st.critRate)||0)*2.5+(Number(st.critDamage)||0)*.65+(Number(st.attackSpeed)||0)*1.7+((item.series&&armorSlots.includes(item.slot))?3:0)}
 function bestItemIds(){const best=new Map();for(const item of s.inventory){const key=item.classId+'|'+item.slot;const prev=best.get(key);if(!prev||itemScore(item)>itemScore(prev))best.set(key,item)}return new Set([...best.values()].map(x=>x.id))}
 function itemPrice(item){return Math.max(5,Math.floor((Number(item.bonus)||1)*10))}
@@ -193,7 +200,8 @@ function renderLoot(){const ch=s.chests||0;$('chestCount').textContent=fmt(ch);$
 function saveSilent(){s.lastSeen=Date.now();localStorage.setItem('eclipseAscensionSave',JSON.stringify(s));}
 function renderCombat(){$('bossFill').style.width=Math.max(0,s.bossHp/s.bossMax*100)+'%';$('bossHp').textContent=fmt(s.bossHp)+' / '+fmt(s.bossMax);$('heroHpFill').style.width=(s.heroHp/s.heroMaxHp*100)+'%';$('heroHp').textContent=`Życie ${Math.floor(s.heroHp)} / ${s.heroMaxHp}`}
 function renderStats(){$('gold').textContent=fmt(s.gold);$('essence').textContent=fmt(s.essence);$('power').textContent=fmt(damage());$('stage').textContent='Etap '+s.stage;$('enemyName').textContent=enemyLabel();$('classLabel').textContent=cls().name;$('heroName').textContent=cls().hero;$('weaponLabel').textContent=weapon().name+' • '+weapon().skill;$('level').textContent=s.level;$('damage').textContent=fmt(damage());$('dps').textContent=fmt(autoDps());$('clicks').textContent=fmt(s.clicks);const stats=gearStats();$('statAttack').textContent='+'+stats.attack+'%';$('statSpeed').textContent='+'+stats.attackSpeed+'%';$('statCritRate').textContent=stats.critRate+'%';$('statCritDamage').textContent='+'+stats.critDamage+'%';$('statHit').textContent=fmt(damage());$('statAutoDps').textContent=fmt(autoDps());$('weaponName').textContent=cls().weapons[s.weaponIndex];$('weaponDesc').textContent=weapon().skill+' • '+weapon().desc+' • tempo x'+weapon().speed.toFixed(2);$('upgradeBtn').textContent='Ulepsz • '+fmt(25*Math.pow(1.7,s.damageLevel))+' 🪙';$('autoBtn').textContent='Ulepsz • '+fmt(40*Math.pow(1.7,s.autoLevel))+' 🪙';$('prestigeGain').textContent=fmt(s.stage<10?0:Math.ceil(Math.max(1,Math.floor(s.stage/2))*(1+relicLevel('essence')*.20)));$('multiplier').textContent='x'+mult().toFixed(2);$('prestigeBtn').disabled=s.stage<10;$('adminAutoBtn').textContent=s.adminAuto?'⏸ Wyłącz':'▶ Włącz';$('adminPrestigeBtn').textContent=s.adminPrestige?'⏸ Wyłącz':'▶ Włącz';$('adminOpenBtn').textContent=s.adminOpen?'⏸ Wyłącz':'▶ Włącz';$('adminRate').value=String(s.adminRate);$('classInfo').textContent=cls().info+' • ATK z ekwipunku: +'+gearStats().attack+'% • set: '+setCount()+'/4';renderCombat();renderLoot()}
-function render(){renderStats();renderSkills();renderQuests();renderRelics();document.body.className='theme-'+(s.theme==='dark'?'':s.theme);if(s.theme==='dark')document.body.className='';$('themeSelect').value=s.theme}
+function render(){renderStats();renderSkills();renderQuests();renderRelics();renderArenaSkills();document.body.className='theme-'+(s.theme==='dark'?'':s.theme);if(s.theme==='dark')document.body.className='';$('themeSelect').value=s.theme}
+$('arenaSkillQ').onclick=useSkill;$('arenaSkillE').onclick=useFrenzy;$('arenaSkillR').onclick=useShadow;
 $('openChestBtn').onclick=openChest;$('autoEquipBtn').onclick=()=>{s.autoEquip=!s.autoEquip;render();saveSilent()};$('bagSort').onchange=renderEquipment;$('sellWorseBtn').onclick=sellWorse;$('bulkSellBtn').onclick=bulkSell;$('bagFilter').onchange=renderEquipment;
 $('attackBtn').onclick=manualAttack;$('skillBtn').onclick=useSkill;
 $('adminOpenBtn').onclick=()=>{s.adminOpen=!s.adminOpen;pushLog(s.adminOpen?'ADMIN: Auto Open włączony.':'ADMIN: Auto Open wyłączony.');render();saveSilent()};
@@ -212,7 +220,7 @@ $('themeSelect').onchange=e=>{s.theme=e.target.value;render()};
 $('exportBtn').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='eclipse-ascension-save.json';a.click();URL.revokeObjectURL(a.href)};
 $('resetBtn').onclick=()=>{if(confirm('Na pewno usunąć cały zapis?')){localStorage.removeItem('eclipseAscensionSave');location.reload()}};
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
-window.addEventListener('keydown',e=>{if(e.code==='Space'&&!['BUTTON','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();manualAttack()}if(e.key.toLowerCase()==='q')useSkill()});
+window.addEventListener('keydown',e=>{if(e.code==='Space'&&!['BUTTON','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();manualAttack()}if(e.key.toLowerCase()==='q')useSkill();if(e.key.toLowerCase()==='e')useFrenzy();if(e.key.toLowerCase()==='r')useShadow()});
 const canvas=$('scene'),ctx=canvas.getContext('2d');
 function drawScene(t){let w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.save();ctx.translate((Math.random()-.5)*screenShake,(Math.random()-.5)*screenShake);screenShake*=.83;if(screenShake<.15)screenShake=0;
  let grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,s.theme==='anime'?'#4b285e':s.theme==='arcane'?'#123e58':s.theme==='magical'?'#496b65':'#202347');grad.addColorStop(.62,'#272849');grad.addColorStop(1,'#0b1020');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
@@ -242,6 +250,8 @@ function drawScene(t){let w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
  ctx.fillStyle='#17172b';ctx.beginPath();ctx.ellipse(-14,-5,5,9,0,0,Math.PI*2);ctx.ellipse(15,-5,5,9,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(-16,-7,3,4);ctx.fillRect(13,-7,3,4);
  ctx.strokeStyle='#ffdb8a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-28,-27);ctx.lineTo(-40,-47);ctx.moveTo(28,-27);ctx.lineTo(42,-49);ctx.stroke();
  ctx.restore();
+ // flying arrows, bolts, spells and sword slashes
+ for(let i=projectiles.length-1;i>=0;i--){const p=projectiles[i];p.x+=p.vx;p.y+=p.vy;p.life++;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(Math.atan2(p.vy,p.vx));ctx.shadowColor=p.color;ctx.shadowBlur=16;ctx.strokeStyle=p.color;ctx.lineWidth=p.kind==='slash'?9:4;ctx.beginPath();ctx.moveTo(p.kind==='slash'?-48:-34,0);ctx.lineTo(8,0);ctx.stroke();if(p.kind==='arrow'){ctx.fillStyle='#f7e9c5';ctx.beginPath();ctx.moveTo(15,0);ctx.lineTo(3,-6);ctx.lineTo(3,6);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(-32,-8);ctx.lineTo(-24,0);ctx.lineTo(-32,8);ctx.stroke()}else if(p.kind==='orb'){ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(8,0,9,0,Math.PI*2);ctx.fill()}ctx.restore();if(p.x>845||p.life>50)projectiles.splice(i,1)}
  // attack particles
  if(attackFlash>0){ctx.globalAlpha=attackFlash;ctx.strokeStyle='#d9c5ff';ctx.lineWidth=5;ctx.beginPath();ctx.arc(590,345,70+(1-attackFlash)*110,-.8,1.2);ctx.stroke();ctx.globalAlpha=1;attackFlash=Math.max(0,attackFlash-.035)}
  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.14;p.life-=.025;ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=12;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();if(p.life<=0)particles.splice(i,1)}ctx.shadowBlur=0;ctx.globalAlpha=1;
@@ -258,7 +268,7 @@ function loop(now){let dt=Math.min(.25,(now-lastFrame)/1000);lastFrame=now;
  if(s.bossHp>0){s.autoDamage+=autoDps()*dt;if(s.autoDamage>=1){let n=Math.floor(s.autoDamage);s.autoDamage-=n;hit(n,'auto')}}
  if(s.adminOpen&&s.chests>0){autoOpenElapsed+=dt;if(autoOpenElapsed>=.5){autoOpenElapsed=0;openChest()}}else autoOpenElapsed=0;
  if(s.adminPrestige && s.stage>=11)doPrestige();
- if(s.skillCooldown>0)s.skillCooldown=Math.max(0,s.skillCooldown-dt);
+ if(s.skillCooldown>0)s.skillCooldown=Math.max(0,s.skillCooldown-dt);if(s.shadowCooldown>0)s.shadowCooldown=Math.max(0,s.shadowCooldown-dt);renderArenaSkills();
  $('skillBtn').textContent=s.skillCooldown>0?`Skill (${Math.ceil(s.skillCooldown)}s)`:'Skill [Q]';
  if(s.heroHp<s.heroMaxHp)s.heroHp=Math.min(s.heroMaxHp,s.heroHp+dt*.4);
  if(now%2000<30){renderStats();renderQuests()}
