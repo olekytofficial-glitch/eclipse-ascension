@@ -19,14 +19,14 @@ button,select{font:inherit;color:inherit;background:#252b49;border:1px solid #44
 <body>
 <div class="app" id="app">
   <header class="top">
-    <div><div class="brand">ECLIPSE<span>: ASCENSION</span></div><div class="muted tiny">Idle RPG • grywalny prototyp 1.0.5</div></div>
+    <div><div class="brand">ECLIPSE<span>: ASCENSION</span></div><div class="muted tiny">Idle RPG • grywalny prototyp 1.0.6</div></div>
     <div class="resources">
       <div class="pill">🪙 <b id="gold">0</b></div>
       <div class="pill">✦ <b id="essence">0</b> esencji</div>
       <div class="pill">⚔️ <b id="power">0</b> mocy</div>
     </div>
   </header>
-  <div class="notice" style="background:#173b36;border-color:#4db99e;color:#d8fff5;font-weight:700">✅ AKTUALIZACJA ONLINE DZIAŁA! ECLIPSE v1.0.5 — Nowy silnik pocisków 🎉</div>
+  <div class="notice" style="background:#173b36;border-color:#4db99e;color:#d8fff5;font-weight:700">✅ AKTUALIZACJA ONLINE DZIAŁA! ECLIPSE v1.0.6 — Naprawiona pętla animacji 🎉</div>
   <div class="notice tiny">Prototyp mechanik • ADMIN Auto Click: Opcje — zapis lokalny w tej przeglądarce. Postęp offline jest naliczany przy ponownym otwarciu gry. Skrzynki wypadają tylko za bossów pokonanych podczas aktywnej gry.</div>
   <main class="layout">
     <section class="panel">
@@ -96,7 +96,7 @@ button,select{font:inherit;color:inherit;background:#252b49;border:1px solid #44
       </div>
     </section>
   </main>
-  <div class="footer">ECLIPSE: Ascension • MVP 1.0.5 • robocza nazwa i oryginalne zasady gry</div>
+  <div class="footer">ECLIPSE: Ascension • MVP 1.0.6 • robocza nazwa i oryginalne zasady gry</div>
 </div>
 <script>
 (()=>{
@@ -254,7 +254,7 @@ function drawScene(t){const dt=previousSceneFrame?Math.min(.08,Math.max(0,(t-pre
  for(let i=projectiles.length-1;i>=0;i--){const p=projectiles[i];p.age+=dt;const progress=p.age/p.duration;if(progress<0)continue;if(progress>=1){projectiles.splice(i,1);continue}const ease=progress;const x=p.fromX+(p.toX-p.fromX)*ease;const y=p.fromY+(p.toY-p.fromY)*ease-22*Math.sin(Math.PI*progress);ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(p.toY-p.fromY,p.toX-p.fromX));ctx.globalAlpha=Math.min(1,(1-progress)*5);ctx.shadowColor=p.color;ctx.shadowBlur=p.heavy?28:18;if(p.kind==='arrow'||p.kind==='bolt'){ctx.strokeStyle='#e8d8ae';ctx.lineWidth=p.kind==='bolt'?8:5;ctx.beginPath();ctx.moveTo(p.kind==='bolt'?-38:-65,0);ctx.lineTo(5,0);ctx.stroke();ctx.fillStyle=p.color;ctx.beginPath();ctx.moveTo(19,0);ctx.lineTo(0,-10);ctx.lineTo(0,10);ctx.closePath();ctx.fill();ctx.strokeStyle='#c4a0ff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-58,-13);ctx.lineTo(-44,0);ctx.lineTo(-58,13);ctx.stroke();ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-125,0);ctx.lineTo(-70,0);ctx.stroke()}else if(p.kind==='orb'||p.kind==='ether'){ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(0,0,p.heavy?18:(p.kind==='ether'?7:13),0,Math.PI*2);ctx.fill();ctx.strokeStyle=p.color;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-100,0);ctx.lineTo(-15,0);ctx.stroke()}else{ctx.strokeStyle=p.color;ctx.lineWidth=p.heavy?15:(p.kind==='greatslash'?13:9);ctx.beginPath();ctx.moveTo(-90,-25);ctx.quadraticCurveTo(0,-60,40,25);ctx.stroke()}ctx.restore()}
  // attack particles
  if(attackFlash>0){ctx.globalAlpha=attackFlash;ctx.strokeStyle='#d9c5ff';ctx.lineWidth=5;ctx.beginPath();ctx.arc(590,345,70+(1-attackFlash)*110,-.8,1.2);ctx.stroke();ctx.globalAlpha=1;attackFlash=Math.max(0,attackFlash-.035)}
- for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.14;p.life-=.025;ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=12;ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);ctx.fill();if(p.life<=0)particles.splice(i,1)}ctx.shadowBlur=0;ctx.globalAlpha=1;
+ for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.14;p.life-=.025;ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=12;ctx.beginPath();ctx.arc(p.x,p.y,Math.max(0,p.size*p.life),0,Math.PI*2);ctx.fill();if(p.life<=0)particles.splice(i,1)}ctx.shadowBlur=0;ctx.globalAlpha=1;
 for(let i=floatTexts.length-1;i>=0;i--){const f=floatTexts[i];f.y-=1.7;f.life-=.02;ctx.globalAlpha=Math.max(0,f.life);ctx.font=(f.heavy?'bold 37px':'bold 28px')+' system-ui';ctx.textAlign='center';ctx.strokeStyle='#131324';ctx.lineWidth=5;ctx.strokeText(f.value,f.x,f.y);ctx.fillStyle=f.heavy?'#ffb9ff':'#ffe39c';ctx.fillText(f.value,f.x,f.y);if(f.life<=0)floatTexts.splice(i,1)}ctx.globalAlpha=1;ctx.textAlign='start';
 ctx.fillStyle='#ffffff55';ctx.font='bold 24px system-ui';ctx.fillText('ETAP '+s.stage,42,585);ctx.restore();
  requestAnimationFrame(drawScene)}
