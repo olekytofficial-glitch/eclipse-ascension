@@ -147,7 +147,7 @@ let s={
  skillCooldown:0,heroHp:100,heroMaxHp:100,theme:'dark',lastSeen:Date.now(),questsClaimed:{},questProgress:{},autoDamage:0,focusUntil:0,frenzyUntil:0,adminAuto:false,adminPrestige:false,adminOpen:false,adminRate:25,adminClickBuffer:0,shadowCooldown:0,chests:0,inventory:[],equipment:{warrior:{},ranger:{},arcanist:{}},highestStage:1,skillTrees:{warrior:{},ranger:{},arcanist:{}}
 };
 let enemyTick=0, lastFrame=performance.now(), attackFlash=0;const adminMode=new URLSearchParams(location.search).get('admin')==='1';let resettingGame=false;const projectiles=[];const pendingAutoHits=[];function fireAttack(amount,source){if(s.bossHp<=0||deathScene)return;const now=performance.now();const before=projectiles.length;launchProjectile(source);const p=projectiles[before];if(!p){hit(amount,'projectile-impact');return}const flight=Math.max(0,-p.age+p.duration*.9)*1000;pendingAutoHits.push({at:now+flight,amount,stage:s.stage,classId:s.classId})}let deathScene=null;let arenaChest=null;let spawnAt=0;const deathSparks=[];let lastProjectileAt=0;let previousSceneFrame=0;let sceneWeaponKey='';let autoAttackElapsed=0;let enemyHitAt=-9999;let enemyHitCritical=false;const impactBursts=[];let attackPoseStart=-9999;let attackPoseDuration=1.15;function triggerAttackPose(source){attackPoseStart=performance.now();attackPoseDuration=source==='skill'?1.3:1.15}function poseProgress(t){return Math.max(0,Math.min(1,(t-attackPoseStart)/(attackPoseDuration*1000)))}function windupAmount(t){const p=poseProgress(t);return p<.62?Math.sin((p/.62)*Math.PI/2):Math.max(0,1-(p-.62)/.22)}const particles=[];const floatTexts=[];let screenShake=0;let lastEffectTime=0;
-function launchProjectile(source){const now=performance.now();if(source==='auto'&&now-lastProjectileAt<1200)return;if(source==='ADMIN Auto Click'&&now-lastProjectileAt<320)return;lastProjectileAt=now;triggerAttackPose(source);const kind=s.classId==='ranger'?(s.weaponIndex===1?'bolt':'arrow'):s.classId==='arcanist'?(s.weaponIndex===1?'ether':'orb'):(s.weaponIndex===1?'greatslash':'slash');const n=source==='skill'?(kind==='arrow'?8:kind==='orb'?6:4):1;for(let i=0;i<n;i++){const spread=n>1?(i-(n-1)/2)*14:0;projectiles.push({age:-(i*(source==='skill'?0.065:0))-.42,duration:(kind==='slash'||kind==='greatslash')?.5:(kind==='arrow'||kind==='bolt')?1.25:1.1,fromX:(kind==='slash'||kind==='greatslash')?410:375,fromY:(kind==='slash'||kind==='greatslash')?398:380+spread*.35,toX:(kind==='slash'||kind==='greatslash')?815:870,toY:(kind==='slash'||kind==='greatslash')?400:395+spread,kind,color:source==='skill'?'#ffc7ff':(kind==='arrow'||kind==='bolt')?'#9affda':'#91baff',heavy:source==='skill'});}if(projectiles.length>75)projectiles.splice(0,projectiles.length-75)}
+function launchProjectile(source){const now=performance.now();if(source==='auto'&&now-lastProjectileAt<1200)return;if(source==='ADMIN Auto Click'&&now-lastProjectileAt<320)return;lastProjectileAt=now;if(source!=='auto'||performance.now()-attackPoseStart>attackPoseDuration*1000)triggerAttackPose(source);const kind=s.classId==='ranger'?(s.weaponIndex===1?'bolt':'arrow'):s.classId==='arcanist'?(s.weaponIndex===1?'ether':'orb'):(s.weaponIndex===1?'greatslash':'slash');const n=source==='skill'?(kind==='arrow'?8:kind==='orb'?6:4):1;for(let i=0;i<n;i++){const spread=n>1?(i-(n-1)/2)*14:0;projectiles.push({age:-(i*(source==='skill'?0.065:0))-.65,duration:(kind==='slash'||kind==='greatslash')?.5:(kind==='arrow'||kind==='bolt')?1.25:1.1,fromX:(kind==='slash'||kind==='greatslash')?410:375,fromY:(kind==='slash'||kind==='greatslash')?398:380+spread*.35,toX:(kind==='slash'||kind==='greatslash')?815:870,toY:(kind==='slash'||kind==='greatslash')?400:395+spread,kind,color:source==='skill'?'#ffc7ff':(kind==='arrow'||kind==='bolt')?'#9affda':'#91baff',heavy:source==='skill'});}if(projectiles.length>75)projectiles.splice(0,projectiles.length-75)}
 function combatEffect(amount,source,critical=false){const now=performance.now();enemyHitAt=now;enemyHitCritical=critical;impactBursts.push({start:now,critical,boss:s.stage%10===0,x:840,y:405});if(impactBursts.length>20)impactBursts.shift();if(now-lastEffectTime<65)return;lastEffectTime=now;const x=840,y=405;const heavy=source==='skill'||critical;screenShake=Math.min(20,screenShake+(critical?14:heavy?10:3));for(let i=0;i<(heavy?22:9);i++){const angle=Math.random()*Math.PI*2,speed=(heavy?3.8:2.5)+Math.random()*4;particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:1,color:heavy?'#e3a2ff':Math.random()<.5?'#ffe3a2':'#6eece5',size:2+Math.random()*5})}floatTexts.push({x:x+(Math.random()-.5)*70,y:y-80,value:(critical?'💥 CRIT ':'')+fmt(amount),life:1,heavy});if(particles.length>170)particles.splice(0,particles.length-170);if(floatTexts.length>18)floatTexts.shift()}
 const questDefs=[
  {id:'clicks100',name:'Palec wojownika',desc:'Wykonaj 100 kliknięć.',goal:100,key:'clicks',reward:150,kind:'gold'},
@@ -267,6 +267,8 @@ cube(body,0,3.55,0,.67,.75,.63,steel);cube(body,0,3.55,.34,.5,.12,.08,dark);
 const cape=new T.Mesh(new T.PlaneGeometry(1.65,2.2,1,5),new T.MeshStandardMaterial({color:0x1b253e,side:T.DoubleSide,roughness:.95}));cape.position.set(0,2.05,-.38);body.add(cape);
 const crest=cube(body,0,2.75,.395,.22,.48,.045,gold);crest.rotation.z=.785;
 const shoulderPads=[];
+const ease=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)};
+const phase=(p,a,b)=>ease((p-a)/(b-a));
 const legs=[];for(const side of [-1,1]){let g=new T.Group();g.position.set(side*.28,1.8,0);root.add(g);cube(g,0,-.48,0,.4,.9,.43,dark);cube(g,0,-1.05,.12,.44,.62,.5,steel);cube(g,0,-1.36,.27,.47,.22,.75,dark);legs.push(g)}
 const arms=[];for(const side of [-1,1]){let shoulder=new T.Group();shoulder.position.set(side*.7,3.03,0);body.add(shoulder);const pad=cube(shoulder,0,-.08,0,.63,.35,.63,steel);pad.rotation.z=side*.15;shoulderPads.push(pad);cube(shoulder,0,-.38,0,.36,.85,.4,steel);let elbow=new T.Group();elbow.position.y=-.78;shoulder.add(elbow);cube(elbow,0,-.3,0,.31,.67,.35,dark);let hand=new T.Group();hand.position.y=-.65;elbow.add(hand);cube(hand,0,0,0,.31,.31,.32,skin);arms.push({shoulder,elbow,hand})}
 const sword=new T.Group();arms[1].hand.add(sword);cube(sword,0,.3,0,.12,.65,.14,wood);cube(sword,0,-.04,0,.72,.13,.18,gold);cube(sword,0,-1.1,0,.18,2,.16,steel);const tip=new T.Mesh(new T.ConeGeometry(.15,.4,4),steel);tip.position.y=-2.25;tip.rotation.z=Math.PI;sword.add(tip);
@@ -274,19 +276,55 @@ const bow=new T.Group();arms[0].hand.add(bow);const curve=[];for(let i=0;i<=20;i
 bow.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(curve),30,.06,7),wood));
 const stringPoints=new Float32Array(9),geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(stringPoints,3));bow.add(new T.Line(geo,new T.LineBasicMaterial({color:0xd7ffff})));
 const arrow=new T.Group();bow.add(arrow);cube(arrow,0,0,.6,.045,.045,1.5,gold);const arrowhead=new T.Mesh(new T.ConeGeometry(.11,.27,5),steel);arrowhead.rotation.x=Math.PI/2;arrowhead.position.z=1.42;arrow.add(arrowhead);
+const stringHand=new T.Mesh(new T.SphereGeometry(.14,10,8),skin);body.add(stringHand);
 const staff=new T.Group();arms[1].hand.add(staff);cube(staff,0,-.9,0,.13,2,.13,wood);let orb=new T.Mesh(new T.SphereGeometry(.22,16,12),m(0xa88cff));orb.position.y=-2;staff.add(orb);
 return t=>{
-const p=poseProgress(t),w=windupAmount(t),strike=p>.62&&p<.85?(p-.62)/.23:p>=.85?1:0,swing=strike*strike*(3-2*strike),war=s.classId==='warrior',ran=s.classId==='ranger';
+const p=poseProgress(t),active=t-attackPoseStart<attackPoseDuration*1000;
+const wind=active?phase(p,.02,.55)*(1-phase(p,.61,.73)):0;
+const release=active?phase(p,.61,.74)*(1-phase(p,.84,1)):0;
+const recover=active?phase(p,.76,1):1;
+const war=s.classId==='warrior',ran=s.classId==='ranger',mage=!war&&!ran;
+const idle=Math.sin(t/510),breath=Math.sin(t/850);
 steel.color.setHex(war?0x819fb6:ran?0x548e81:0x8d76bd);
-root.rotation.y=-.25+w*.55-swing*1.05;body.rotation.z=Math.sin(t/650)*.016+w*.18-swing*.34;body.rotation.x=-w*.2+swing*.35;
-root.position.x=-2.8+Math.sin(t/820)*.025+swing*.18;root.position.y=-1.3+Math.sin(t/560)*.018-swing*.08;
-cape.rotation.x=.12+Math.sin(t/360)*.09+swing*.28;cape.rotation.z=Math.sin(t/480)*.045;
-for(let i=0;i<2;i++)legs[i].rotation.x=Math.sin(t/500+i*Math.PI)*.03+swing*(i?.2:-.2);
-sword.visible=war;bow.visible=ran;staff.visible=!war&&!ran;
-for(let i=0;i<2;i++){let a=arms[i];a.shoulder.rotation.set(-1.2-w*.5,0,(i===0?1:-1)*(.65+w*.25));a.elbow.rotation.set(-.9-w*.3,0,0)}
-if(war){arms[1].shoulder.rotation.x=-1.8-w*.8+swing*1.6;arms[0].shoulder.rotation.x=-1.65-w*.6+swing*1.3;arms[1].shoulder.rotation.z=-.8+swing*1.2;arms[0].shoulder.rotation.z=.8-swing*.9;sword.rotation.x=Math.PI;sword.rotation.z=.1-w*.38+swing*1.05;arms[1].elbow.rotation.x=-1.35+w*.5+swing*.55;arms[0].elbow.rotation.x=-1.1+w*.3+swing*.7}
-if(ran){arms[0].shoulder.rotation.x=-1.55;arms[1].shoulder.rotation.x=-1.4-w*.8;arms[1].elbow.rotation.x=-1-w*.7;bow.rotation.z=Math.PI;stringPoints.set([0,-1.2,0,0,0,w*.8,0,1.2,0]);geo.attributes.position.needsUpdate=true;arrow.visible=p<.62;arrow.position.z=w*.8;arms[1].shoulder.rotation.z=.35+w*.5}
-if(!war&&!ran){arms[1].shoulder.rotation.x=-1.55-w*.45;arms[1].elbow.rotation.x=-.65-w*.55;orb.scale.setScalar(1+w*.6);staff.rotation.z=w*.3;}
+root.position.set(-2.8+release*.22, -1.3+idle*.018-release*.07,0);
+root.rotation.set(0,-.22+wind*.24-release*.65,0);
+body.rotation.set(-wind*.13+release*.19,0,breath*.013+wind*.1-release*.22);
+cape.rotation.set(.12+Math.sin(t/370)*.1+release*.32,0,Math.sin(t/590)*.05);
+legs.forEach((leg,i)=>{leg.rotation.x=idle*.018+(i===0?-1:1)*release*.19;leg.rotation.z=(i===0?-1:1)*wind*.04});
+for(let i=0;i<2;i++){const arm=arms[i];arm.shoulder.rotation.set(-.3,0,(i===0?1:-1)*.19);arm.elbow.rotation.set(-.32,0,0);arm.hand.rotation.set(0,0,0)}
+sword.visible=war;bow.visible=ran;staff.visible=mage;stringHand.visible=ran&&active&&p<.71;
+if(war){
+  // Two-handed overhead wind-up, then a sharp downward diagonal slash.
+  arms[1].shoulder.rotation.set(-.75-wind*1.35+release*1.7, -.15, -.2-wind*.45+release*.85);
+  arms[1].elbow.rotation.set(-.5-wind*.7+release*.85,0,0);
+  arms[0].shoulder.rotation.set(-.55-wind*1.05+release*1.15,0,.32-wind*.5+release*.5);
+  arms[0].elbow.rotation.x=-.6-wind*.35+release*.4;
+  sword.rotation.set(Math.PI,0,.08-wind*.65+release*1.45);
+  sword.position.set(0,.02,0);
+}else if(ran){
+  // Bow arm aims forward; draw hand retracts with the string, then releases.
+  arms[0].shoulder.rotation.set(-1.47,0,.17);
+  arms[0].elbow.rotation.x=-.13;
+  arms[1].shoulder.rotation.set(-1.25-wind*.18,0,-.18-wind*.45);
+  arms[1].elbow.rotation.set(-.5-wind*1.05,0,0);
+  bow.rotation.set(0,Math.PI/2,Math.PI);
+  bow.position.set(0,0,.13);
+  stringPoints.set([0,-1.2,0,0,0,wind*.85,0,1.2,0]);geo.attributes.position.needsUpdate=true;
+  arrow.visible=active&&p<.7;arrow.position.set(0,0,wind*.8);
+  stringHand.position.set(.2,2.88,.3+wind*.62);
+}else{
+  // Caster gathers energy and drives the staff forward on release.
+  arms[1].shoulder.rotation.set(-.7-wind*.8+release*.55,0,-.23+wind*.32);
+  arms[1].elbow.rotation.x=-.48-wind*.55+release*.3;
+  arms[0].shoulder.rotation.set(-.55-wind*.7+release*.65,0,.3+wind*.2);
+  arms[0].elbow.rotation.x=-.65-wind*.25;
+  staff.rotation.set(.1-wind*.32+release*.45,0,-.12+wind*.18-release*.3);
+  const pulse=1+wind*.8+Math.sin(t/110)*.05;
+  orb.scale.setScalar(pulse);
+  orb.material.emissive.setHex(0x3a147e);
+  orb.material.emissiveIntensity=.5+wind*1.6;
+}
+
 R.render(scene,cam);
 }
 }catch(e){console.warn('3D fallback',e);return null}
