@@ -39,7 +39,7 @@ button,select{font:inherit;color:inherit;background:#252b49;border:1px solid #44
       <div class="pill">⚔️ <b id="power">0</b> mocy</div>
     </div>
   </header>
-  <div class="notice" style="background:#173b36;border-color:#4db99e;color:#d8fff5;font-weight:700">✅ AKTUALIZACJA ONLINE DZIAŁA! ECLIPSE v1.5 — Cabal-style Equipment 🎉</div>
+  <div class="notice" style="background:#173b36;border-color:#4db99e;color:#d8fff5;font-weight:700">✅ AKTUALIZACJA ONLINE DZIAŁA! ECLIPSE v1.6 — Animated Heroes 🎉</div>
   <div class="notice tiny">Prototyp mechanik • ADMIN Auto Click: Opcje — zapis lokalny w tej przeglądarce. Postęp offline jest naliczany przy ponownym otwarciu gry. Skrzynki wypadają tylko za bossów pokonanych podczas aktywnej gry.</div>
   <main class="layout">
     <section class="panel">
@@ -147,7 +147,7 @@ let s={
  skillCooldown:0,heroHp:100,heroMaxHp:100,theme:'dark',lastSeen:Date.now(),questsClaimed:{},questProgress:{},autoDamage:0,focusUntil:0,frenzyUntil:0,adminAuto:false,adminPrestige:false,adminOpen:false,adminRate:25,adminClickBuffer:0,shadowCooldown:0,chests:0,inventory:[],equipment:{warrior:{},ranger:{},arcanist:{}},highestStage:1,skillTrees:{warrior:{},ranger:{},arcanist:{}}
 };
 let enemyTick=0, lastFrame=performance.now(), attackFlash=0;const adminMode=new URLSearchParams(location.search).get('admin')==='1';let resettingGame=false;const projectiles=[];const pendingAutoHits=[];function fireAttack(amount,source){if(s.bossHp<=0||deathScene)return;const now=performance.now();const before=projectiles.length;launchProjectile(source);const p=projectiles[before];if(!p){hit(amount,'projectile-impact');return}const flight=Math.max(0,-p.age+p.duration*.9)*1000;pendingAutoHits.push({at:now+flight,amount,stage:s.stage,classId:s.classId})}let deathScene=null;let arenaChest=null;let spawnAt=0;const deathSparks=[];let lastProjectileAt=0;let previousSceneFrame=0;let sceneWeaponKey='';let autoAttackElapsed=0;let enemyHitAt=-9999;let enemyHitCritical=false;const impactBursts=[];let attackPoseStart=-9999;let attackPoseDuration=1.15;function triggerAttackPose(source){attackPoseStart=performance.now();attackPoseDuration=source==='skill'?1.3:1.15}function poseProgress(t){return Math.max(0,Math.min(1,(t-attackPoseStart)/(attackPoseDuration*1000)))}function windupAmount(t){const p=poseProgress(t);return p<.62?Math.sin((p/.62)*Math.PI/2):Math.max(0,1-(p-.62)/.22)}const particles=[];const floatTexts=[];let screenShake=0;let lastEffectTime=0;
-function launchProjectile(source){const now=performance.now();if(source==='auto'&&now-lastProjectileAt<1200)return;if(source==='ADMIN Auto Click'&&now-lastProjectileAt<320)return;lastProjectileAt=now;if(source!=='auto')triggerAttackPose(source);const kind=s.classId==='ranger'?(s.weaponIndex===1?'bolt':'arrow'):s.classId==='arcanist'?(s.weaponIndex===1?'ether':'orb'):(s.weaponIndex===1?'greatslash':'slash');const n=source==='skill'?(kind==='arrow'?8:kind==='orb'?6:4):1;for(let i=0;i<n;i++){const spread=n>1?(i-(n-1)/2)*14:0;projectiles.push({age:-(i*(source==='skill'?0.065:0))-(source==='auto'?0:.42),duration:(kind==='slash'||kind==='greatslash')?.5:(kind==='arrow'||kind==='bolt')?1.25:1.1,fromX:(kind==='slash'||kind==='greatslash')?410:375,fromY:(kind==='slash'||kind==='greatslash')?398:380+spread*.35,toX:(kind==='slash'||kind==='greatslash')?815:870,toY:(kind==='slash'||kind==='greatslash')?400:395+spread,kind,color:source==='skill'?'#ffc7ff':(kind==='arrow'||kind==='bolt')?'#9affda':'#91baff',heavy:source==='skill'});}if(projectiles.length>75)projectiles.splice(0,projectiles.length-75)}
+function launchProjectile(source){const now=performance.now();if(source==='auto'&&now-lastProjectileAt<1200)return;if(source==='ADMIN Auto Click'&&now-lastProjectileAt<320)return;lastProjectileAt=now;triggerAttackPose(source);const kind=s.classId==='ranger'?(s.weaponIndex===1?'bolt':'arrow'):s.classId==='arcanist'?(s.weaponIndex===1?'ether':'orb'):(s.weaponIndex===1?'greatslash':'slash');const n=source==='skill'?(kind==='arrow'?8:kind==='orb'?6:4):1;for(let i=0;i<n;i++){const spread=n>1?(i-(n-1)/2)*14:0;projectiles.push({age:-(i*(source==='skill'?0.065:0))-.42,duration:(kind==='slash'||kind==='greatslash')?.5:(kind==='arrow'||kind==='bolt')?1.25:1.1,fromX:(kind==='slash'||kind==='greatslash')?410:375,fromY:(kind==='slash'||kind==='greatslash')?398:380+spread*.35,toX:(kind==='slash'||kind==='greatslash')?815:870,toY:(kind==='slash'||kind==='greatslash')?400:395+spread,kind,color:source==='skill'?'#ffc7ff':(kind==='arrow'||kind==='bolt')?'#9affda':'#91baff',heavy:source==='skill'});}if(projectiles.length>75)projectiles.splice(0,projectiles.length-75)}
 function combatEffect(amount,source,critical=false){const now=performance.now();enemyHitAt=now;enemyHitCritical=critical;impactBursts.push({start:now,critical,boss:s.stage%10===0,x:840,y:405});if(impactBursts.length>20)impactBursts.shift();if(now-lastEffectTime<65)return;lastEffectTime=now;const x=840,y=405;const heavy=source==='skill'||critical;screenShake=Math.min(20,screenShake+(critical?14:heavy?10:3));for(let i=0;i<(heavy?22:9);i++){const angle=Math.random()*Math.PI*2,speed=(heavy?3.8:2.5)+Math.random()*4;particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:1,color:heavy?'#e3a2ff':Math.random()<.5?'#ffe3a2':'#6eece5',size:2+Math.random()*5})}floatTexts.push({x:x+(Math.random()-.5)*70,y:y-80,value:(critical?'💥 CRIT ':'')+fmt(amount),life:1,heavy});if(particles.length>170)particles.splice(0,particles.length-170);if(floatTexts.length>18)floatTexts.shift()}
 const questDefs=[
  {id:'clicks100',name:'Palec wojownika',desc:'Wykonaj 100 kliknięć.',goal:100,key:'clicks',reward:150,kind:'gold'},
@@ -252,39 +252,99 @@ function artPoly(points,fill,stroke=null,line=2){ctx.beginPath();ctx.moveTo(poin
 function artLine(points,color,width=3){ctx.beginPath();ctx.moveTo(points[0],points[1]);for(let i=2;i<points.length;i+=2)ctx.lineTo(points[i],points[i+1]);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.stroke()}
 function artEllipse(x,y,rx,ry,color){ctx.beginPath();ctx.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),0,0,Math.PI*2);ctx.fillStyle=color;ctx.fill()}
 function drawFantasyHero(t){
- const gear=s.equipment[s.classId]||{};const find=slot=>s.inventory.find(it=>it.id===gear[slot]);const armor=find('chest'),helmet=find('helmet'),wp=find('weapon');const rarity=(armor&&armor.rarity)||(wp&&wp.rarity)||'common';
- const glow={common:'#8396a9',rare:'#65c5ff',epic:'#b888ff',legendary:'#ffcb72',mythical:'#ff648e'}[rarity]||'#8da8ce';
- const warrior=s.classId==='warrior',ranger=s.classId==='ranger';const primary=warrior?'#667b94':ranger?'#345d57':'#59437e';const trim=warrior?'#c1b9a4':ranger?'#b3d2ae':'#bd96f5';
- const motion=Math.sin(t/240)*1.5;const draw=windupAmount(t);const pose=poseProgress(t);ctx.save();ctx.translate(315,425+motion);ctx.scale(1.65,1.65);
- artEllipse(0,65,55,12,'#02040ca8');ctx.shadowColor=glow;ctx.shadowBlur=rarity==='common'?0:18;
- // cloak and silhouette
- artPoly([-26,-38,-43,-8,-46,52,-23,43,0,53,25,43,35,-10,20,-38],warrior?'#292d44':ranger?'#203c37':'#312449','#0a1224',2);
- artPoly([-18,17,-24,60,-7,61,2,24], '#242a39','#080d19',2);
- artPoly([6,23,7,61,26,61,20,16],'#252d3b','#080d19',2);
- artPoly([-25,51,-28,65,-3,65,-5,54],'#111b28','#8490a5',1);
- artPoly([8,53,7,65,29,65,28,54],'#111b28','#8490a5',1);
- // torso segmented armor
- artPoly([-26,-34,23,-34,29,13,14,28,-18,28,-30,11],primary,'#111522',3);
- artPoly([-17,-28,0,-19,18,-28,13,3,0,13,-14,3],warrior?'#8a98a8':ranger?'#496c5a':'#745b99',trim,2);
- artPoly([-20,17,20,17,25,27,-23,27],'#1b2233',trim,2);
- artLine([-13,-2,0,5,13,-2],glow,2);
- // shoulder armor
- artPoly([-33,-34,-12,-39,-10,-19,-28,-12,-38,-21],primary,trim,2);
- artPoly([14,-39,33,-33,38,-20,25,-12,12,-20],primary,trim,2);
- // head/hood/helmet
- artEllipse(0,-53,17,22,'#b5a0a0');
- if(warrior){artPoly([-21,-69,-12,-81,10,-81,21,-67,19,-44,10,-34,-11,-34,-21,-46],'#697e91',trim,2);artPoly([-17,-57,17,-57,10,-47,-11,-47],'#0a1323');artLine([-12,-52,12,-52],glow,3);artPoly([-6,-80,0,-92,6,-80],trim)}
- else if(ranger){artPoly([-29,-58,-21,-79,-3,-91,19,-75,29,-53,16,-34,-18,-35],'#233e37',trim,2);artPoly([-16,-62,0,-75,17,-61,12,-43,-13,-43],'#121a22');artLine([-9,-53,9,-53],'#a9efc9',2)}
- else {artPoly([-24,-66,-14,-85,10,-91,25,-69,23,-36,11,-42,-15,-42],'#493465',trim,2);artPoly([-16,-65,0,-80,17,-63,10,-42,-10,-42],'#151126');artEllipse(0,-82,5,5,glow);artLine([-10,-54,10,-54],'#f1baff',2)}
- // left arm and bracer
- artPoly([-27,-21,-40,4,-29,12,-14,-9],primary,trim,2);artPoly([-41,0,-33,15,-23,8,-29,-3], '#232e40',trim,2);
- // Animated weapon arm and release: bow draw, sword swing, magic charge.
- const pull=ranger&&s.weaponIndex===0?draw*28:0;
- if(warrior){const swing=pose<.62?-draw*.85:(pose<.85?(pose-.62)/.23*1.5:0);ctx.save();ctx.translate(23,-22);ctx.rotate(swing);artPoly([0,0,20,11,24,29,11,33,-5,15],primary,trim,2);artEllipse(19,31,7,8,'#c7a4a1');const great=s.weaponIndex===1;artLine([19,31,39,8],'#574534',7);artLine([39,8,great?76:67,great?-79:-53],glow,great?13:7);artLine([39,8,great?76:67,great?-79:-53],'#e9f0ff',great?5:3);artLine([29,18,58,25],trim,6);ctx.restore()}
- else if(ranger){artPoly([22,-21,40,-7,44,8,32,15,19,-7],primary,trim,2);ctx.shadowColor=glow;ctx.shadowBlur=12;
- if(s.weaponIndex===0){const bowX=64,bowTop=-67,bowBottom=36;ctx.strokeStyle='#d4b886';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(bowX,bowTop);ctx.quadraticCurveTo(103,-13,bowX,bowBottom);ctx.stroke();const gripX=bowX-16-pull;const gripY=-13;artLine([bowX,bowTop,gripX,gripY,bowX,bowBottom],'#b4ffe5',2.7);artPoly([29,-19,gripX-4,gripY-8,gripX+2,gripY+3,25,-4],primary,trim,2);artEllipse(gripX,gripY,6,7,'#d7b4a2');if(pose<.65&&draw>.05){artLine([gripX-8,gripY,bowX+18,gripY],'#f7e7c0',3);artPoly([bowX+23,gripY,bowX+10,gripY-7,bowX+10,gripY+7],glow)} }
- else{const kick=pose>.6&&pose<.83?10:0;artPoly([37-kick,-12,83-kick,-19,88-kick,-8,43-kick,4],'#3a4d55',trim,2);artLine([45-kick,-5,87-kick,-12],glow,4);artPoly([41,1,51,0,50,18,43,18],'#493d32')}}
- else{const lift=draw*18;artPoly([22,-21,39,-12-lift,44,8-lift,32,15-lift,19,-7],primary,trim,2);artEllipse(40,11-lift,7,8,'#c7a4a1');ctx.shadowColor=glow;ctx.shadowBlur=12;if(s.weaponIndex===0){artLine([40,11-lift,66,-71-lift],'#342746',8);artLine([66,-71-lift,76,-92-lift],trim,5);ctx.shadowBlur=28;artEllipse(76,-96-lift,12+draw*8,15+draw*8,glow);artEllipse(76,-96-lift,5+draw*3,7+draw*3,'#fff4fd')}else{for(const off of [-1,1]){artPoly([34,off*12-lift,69,off*12-10-lift,76,off*12-4-lift,41,off*12+8-lift],'#393149',trim,2);artEllipse(73,off*12-7-lift,6+draw*4,5+draw*4,glow)}}}
+ const warrior=s.classId==='warrior',ranger=s.classId==='ranger',mage=s.classId==='arcanist';
+ const gear=s.equipment[s.classId]||{},find=slot=>s.inventory.find(i=>i.id===gear[slot]);
+ const armor=find('chest'),wp=find('weapon'),rarity=(armor&&armor.rarity)||(wp&&wp.rarity)||'normal';
+ const glow={normal:'#82c7e8',rare:'#6bd4ff',epic:'#c49bff',legendary:'#ffd879',mythic:'#ff83c4'}[rarity]||'#82c7e8';
+ const main=warrior?'#47536b':ranger?'#28544c':'#493765',bright=warrior?'#a9c7e0':ranger?'#a4e9c5':'#c7a6ff',dark='#141c2a';
+ const p=poseProgress(t),draw=windupAmount(t),release=p>=.62&&p<.86,breath=Math.sin(t/460)*1.4;
+ const limb=(ax,ay,bx,by,width,fill,edge)=>{ctx.save();ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=edge;ctx.lineWidth=width+4;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();ctx.strokeStyle=fill;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);ctx.stroke();ctx.restore()};
+ const plate=(pts,fill=main,stroke=bright,w=2)=>artPoly(pts,fill,stroke,w);
+ const joint=(x,y,r=6)=>{artEllipse(x,y,r+2,r+2,'#1c2837');artEllipse(x,y,r,r,bright)};
+ ctx.save();ctx.translate(318,425+breath);ctx.scale(1.72,1.72);
+ artEllipse(0,67,62,13,'#02040dbb');ctx.shadowColor=glow;ctx.shadowBlur=13;
+ // Layered cloth, articulated boots, greaves and waist.
+ plate([-25,-32,-43,-11,-49,50,-22,40,-4,54,16,43,38,-8,25,-34],warrior?'#252c3b':ranger?'#17352e':'#29213e','#11182a',2);
+ for(const side of [-1,1]){
+  const sx=side*13,foot=side*16;
+  limb(sx,22,foot,52,15,'#273347','#101824');
+  plate([sx-7,29,sx+7,29,foot+9,54,foot-9,54],side<0?'#3d5265':'#35465a',bright,1.5);
+  plate([foot-11,52,foot+10,52,foot+12,66,foot-13,66],dark,bright,1.5);
+  artLine([foot-8,57,foot+7,57],glow,1.5);
+ }
+ plate([-26,-30,-18,-40,19,-40,28,-28,23,12,12,24,-12,24,-23,11],main,bright,2.5);
+ plate([-18,-30,0,-19,18,-30,12,7,0,15,-13,7],warrior?'#687e98':ranger?'#447969':'#77539e',bright,2);
+ plate([-22,17,22,17,19,29,-20,29],dark,bright,2);
+ for(const side of [-1,1]){plate([side*16,-36,side*31,-32,side*36,-19,side*24,-12,side*13,-20],main,bright,2);artLine([side*17,-28,side*28,-22],glow,2)}
+ // More detailed face and hair under class-specific headgear.
+ artEllipse(0,-54,16,21,'#d5a995');
+ artEllipse(-6,-55,2.4,2.8,'#1a2333');artEllipse(7,-55,2.4,2.8,'#1a2333');
+ artLine([-3,-43,5,-43],'#855c62',1.6);
+ if(warrior){plate([-22,-68,-16,-80,-5,-85,10,-84,22,-67,19,-47,12,-41,-13,-41,-21,-47],'#53677c',bright,2.5);plate([-16,-60,16,-60,10,-50,-11,-50],dark);artLine([-11,-54,11,-54],glow,2.5);plate([-6,-84,0,-94,6,-84],bright)}
+ else if(ranger){plate([-27,-56,-23,-76,-5,-91,15,-81,27,-60,17,-43,-17,-42],'#23463d','#9fd8bb',2);plate([-17,-66,0,-79,18,-65,12,-49,-13,-49],'#15251f');artLine([-11,-49,12,-49],'#b6ffe3',1.5)}
+ else{plate([-25,-61,-14,-85,3,-96,23,-75,23,-43,11,-46,-16,-46],'#4e376b',bright,2);plate([-15,-67,3,-82,16,-63,11,-49,-11,-49],'#20162e');artEllipse(3,-86,4,5,glow)}
+ ctx.shadowBlur=5;
+ if(ranger&&s.weaponIndex===0){
+  // Bow arm: left hand keeps the bow steady. Right hand reaches the string,
+  // draws it all the way to the cheek, then releases it.
+  const bowX=78,bowY=-11,top=-80,bottom=62;
+  const handX=64-draw*69,handY=-13-draw*30;
+  const leftElbow={x:40,y:-12},leftHand={x:bowX-3,y:bowY};
+  limb(-23,-19,leftElbow.x,leftElbow.y,15,main,bright);
+  limb(leftElbow.x,leftElbow.y,leftHand.x,leftHand.y,12,'#536c64',bright);
+  joint(leftElbow.x,leftElbow.y,5);
+  // Curved wooden bow, rigid grip and flexible limbs.
+  ctx.save();ctx.lineCap='round';ctx.strokeStyle='#44321e';ctx.lineWidth=9;ctx.beginPath();ctx.moveTo(bowX,top);ctx.quadraticCurveTo(116,-14,bowX,bottom);ctx.stroke();
+  ctx.strokeStyle='#e3b77b';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(bowX,top);ctx.quadraticCurveTo(116,-14,bowX,bottom);ctx.stroke();ctx.restore();
+  plate([bowX-9,-24,bowX+5,-24,bowX+6,2,bowX-9,2],'#4b3a2b','#c8ae77',1);
+  // The actual string is attached to the moving hand.
+  artLine([bowX,top,handX,handY,bowX,bottom],'#e3f6e9',2.2);
+  // Drawing arm: shoulder -> bent elbow -> right hand near the cheek.
+  const elbowX=23-draw*8,elbowY=14+draw*20;
+  limb(22,-18,elbowX,elbowY,15,main,bright);
+  limb(elbowX,elbowY,handX,handY,11,'#526e64',bright);
+  joint(elbowX,elbowY,5);artEllipse(handX,handY,6,6,'#d8b29b');
+  artEllipse(leftHand.x,leftHand.y,6,6,'#d8b29b');
+  // Arrow is nocked on the string; it disappears precisely at release.
+  if(p<.63||p>=1){const visible=p>=1?0:1;if(visible){artLine([handX-5,handY,bowX+21,handY],'#f3e5c0',3);plate([bowX+26,handY,bowX+10,handY-6,bowX+10,handY+6],glow)}}
+  if(draw>.3){ctx.save();ctx.globalAlpha=draw*.4;artEllipse(handX,handY,7,7,'#dcfff0');ctx.restore()}
+ }else if(ranger){
+  // Crossbow held with both arms; visible recoil at the shot.
+  const kick=release?12*Math.sin((p-.62)/.24*Math.PI):0;
+  limb(-24,-18,1,4,14,main,bright);limb(1,4,51-kick,-12,12,'#47685d',bright);
+  limb(24,-18,39,12,14,main,bright);limb(39,12,57-kick,-5,11,'#47685d',bright);
+  plate([35-kick,-23,105-kick,-28,113-kick,-14,43-kick,-8],'#334b52',bright,2);
+  artLine([46-kick,-18,106-kick,-21],glow,4);
+  plate([45-kick,-5,57-kick,-6,55-kick,22,44-kick,21],'#59422d');
+  artLine([70-kick,-39,108-kick,-19,70-kick,2],'#e1d2a6',3);
+ }else if(warrior){
+  // Two-handed grip and a full wind-up / follow-through, not a floating sword.
+  const angle=p<.62?-.9*draw:p<.86?-.9+((p-.62)/.24)*2.2:1.3*(1-(p-.86)/.14);
+  const great=s.weaponIndex===1;
+  ctx.save();ctx.translate(45,-2);ctx.rotate(angle);
+  limb(-69,-20,-34,5,17,main,bright);limb(-34,5,-3,24,12,'#526276',bright);
+  limb(-22,-20,-3,0,17,main,bright);limb(-3,0,1,17,12,'#526276',bright);
+  joint(-34,5,5);joint(-3,0,5);
+  artEllipse(0,18,7,7,'#d7b19a');artEllipse(-4,28,7,7,'#d7b19a');
+  artLine([0,36,24,7],'#634932',8);
+  artLine([24,7,great?69:57,great?-93:-67],'#405268',great?17:11);
+  artLine([24,7,great?69:57,great?-93:-67],'#dbeaff',great?8:5);
+  artLine([7,23,42,23],bright,7);
+  plate([great?69:57,great?-93:-67,great?77:63,great?-107:-79,great?74:60,great?-83:-58],glow);
+  ctx.restore();
+ }else{
+  // Arcanist: both hands visibly lift and focus the spell or paired pistols.
+  const lift=draw*28,spread=draw*10;
+  for(const side of [-1,1]){
+   const shoulder=side*25,elbow=side*(42+spread),hand=side*(54+spread);
+   limb(shoulder,-19,elbow,-2-lift*.45,16,main,bright);
+   limb(elbow,-2-lift*.45,hand,-25-lift,11,'#655081',bright);
+   joint(elbow,-2-lift*.45,5);artEllipse(hand,-25-lift,6,7,'#d4a8a5');
+   if(s.weaponIndex===1){plate([hand-7,-30-lift,hand+side*29,-41-lift,hand+side*36,-32-lift,hand+side*4,-20-lift],'#39334f',bright,2);artEllipse(hand+side*34,-38-lift,6+draw*4,6+draw*4,glow)}
+  }
+  if(s.weaponIndex===0){artLine([55,-25-lift,74,-103-lift],'#423150',8);artLine([74,-103-lift,81,-116-lift],bright,5);ctx.shadowBlur=25+draw*25;artEllipse(81,-121-lift,12+draw*12,13+draw*12,glow);artEllipse(81,-121-lift,5+draw*4,6+draw*4,'#fff2ff')}
+  else if(draw>.05){ctx.save();ctx.globalAlpha=draw*.8;artEllipse(0,-38-lift,8+draw*17,8+draw*17,glow);ctx.restore()}
+ }
  ctx.shadowBlur=0;ctx.restore();
 }
 function drawFantasyEnemy(t){
