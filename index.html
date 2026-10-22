@@ -287,8 +287,8 @@ const war=s.classId==='warrior',ran=s.classId==='ranger',mage=!war&&!ran;
 const idle=Math.sin(t/510),breath=Math.sin(t/850);
 steel.color.setHex(war?0x819fb6:ran?0x548e81:0x8d76bd);
 root.position.set(-2.8+release*.22, -1.3+idle*.018-release*.07,0);
-root.rotation.set(0,-.22+wind*.24-release*.65,0);
-body.rotation.set(-wind*.13+release*.19,0,breath*.013+wind*.1-release*.22);
+root.rotation.set(0,-.22-wind*.12+release*.48,0);
+body.rotation.set(-wind*.13+release*.19,0,breath*.013-wind*.08+release*.18);
 cape.rotation.set(.12+Math.sin(t/370)*.1+release*.32,0,Math.sin(t/590)*.05);
 legs.forEach((leg,i)=>{leg.rotation.x=idle*.018+(i===0?-1:1)*release*.19;leg.rotation.z=(i===0?-1:1)*wind*.04});
 for(let i=0;i<2;i++){const arm=arms[i];arm.shoulder.rotation.set(-.3,0,(i===0?1:-1)*.19);arm.elbow.rotation.set(-.32,0,0);arm.hand.rotation.set(0,0,0)}
