@@ -259,26 +259,34 @@ const scene=new T.Scene(),cam=new T.OrthographicCamera(-6,6,3.2,-3.2,.1,60);cam.
 scene.add(new T.HemisphereLight(0xccefff,0x191329,2.5));const lamp=new T.DirectionalLight(0xffffff,2.4);lamp.position.set(-4,7,8);scene.add(lamp);
 const m=c=>new T.MeshStandardMaterial({color:c,metalness:.42,roughness:.45}),steel=m(0x779bb9),dark=m(0x17263c),skin=m(0xc99a81),gold=m(0xe4b86f),wood=m(0x755136);
 const cube=(g,x,y,z,w,h,d,mat)=>{let o=new T.Mesh(new T.BoxGeometry(w,h,d),mat);o.position.set(x,y,z);g.add(o);return o};
+R.setPixelRatio(Math.min(devicePixelRatio||1,1.6));R.outputColorSpace=T.SRGBColorSpace;
 const root=new T.Group();root.position.set(-2.8,-1.3,0);scene.add(root);
 const body=new T.Group();root.add(body);
 cube(body,0,2.55,0,1.12,1.3,.55,steel);cube(body,0,2.8,.31,.78,.7,.12,dark);cube(body,0,1.95,0,1,.25,.6,gold);
 cube(body,0,3.55,0,.67,.75,.63,steel);cube(body,0,3.55,.34,.5,.12,.08,dark);
+const cape=new T.Mesh(new T.PlaneGeometry(1.65,2.2,1,5),new T.MeshStandardMaterial({color:0x1b253e,side:T.DoubleSide,roughness:.95}));cape.position.set(0,2.05,-.38);body.add(cape);
+const crest=cube(body,0,2.75,.395,.22,.48,.045,gold);crest.rotation.z=.785;
+const shoulderPads=[];
 const legs=[];for(const side of [-1,1]){let g=new T.Group();g.position.set(side*.28,1.8,0);root.add(g);cube(g,0,-.48,0,.4,.9,.43,dark);cube(g,0,-1.05,.12,.44,.62,.5,steel);cube(g,0,-1.36,.27,.47,.22,.75,dark);legs.push(g)}
-const arms=[];for(const side of [-1,1]){let shoulder=new T.Group();shoulder.position.set(side*.7,3.03,0);body.add(shoulder);cube(shoulder,0,-.38,0,.36,.85,.4,steel);let elbow=new T.Group();elbow.position.y=-.78;shoulder.add(elbow);cube(elbow,0,-.3,0,.31,.67,.35,dark);let hand=new T.Group();hand.position.y=-.65;elbow.add(hand);cube(hand,0,0,0,.31,.31,.32,skin);arms.push({shoulder,elbow,hand})}
-const sword=new T.Group();arms[1].hand.add(sword);cube(sword,0,.3,0,.12,.65,.14,wood);cube(sword,0,-.04,0,.72,.13,.18,gold);cube(sword,0,-1.1,0,.18,2,.16,steel);
+const arms=[];for(const side of [-1,1]){let shoulder=new T.Group();shoulder.position.set(side*.7,3.03,0);body.add(shoulder);const pad=cube(shoulder,0,-.08,0,.63,.35,.63,steel);pad.rotation.z=side*.15;shoulderPads.push(pad);cube(shoulder,0,-.38,0,.36,.85,.4,steel);let elbow=new T.Group();elbow.position.y=-.78;shoulder.add(elbow);cube(elbow,0,-.3,0,.31,.67,.35,dark);let hand=new T.Group();hand.position.y=-.65;elbow.add(hand);cube(hand,0,0,0,.31,.31,.32,skin);arms.push({shoulder,elbow,hand})}
+const sword=new T.Group();arms[1].hand.add(sword);cube(sword,0,.3,0,.12,.65,.14,wood);cube(sword,0,-.04,0,.72,.13,.18,gold);cube(sword,0,-1.1,0,.18,2,.16,steel);const tip=new T.Mesh(new T.ConeGeometry(.15,.4,4),steel);tip.position.y=-2.25;tip.rotation.z=Math.PI;sword.add(tip);
 const bow=new T.Group();arms[0].hand.add(bow);const curve=[];for(let i=0;i<=20;i++){let u=i/20;curve.push(new T.Vector3(Math.sin(u*Math.PI)*.5,(u-.5)*2.4,0))}
 bow.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(curve),30,.06,7),wood));
 const stringPoints=new Float32Array(9),geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(stringPoints,3));bow.add(new T.Line(geo,new T.LineBasicMaterial({color:0xd7ffff})));
+const arrow=new T.Group();bow.add(arrow);cube(arrow,0,0,.6,.045,.045,1.5,gold);const arrowhead=new T.Mesh(new T.ConeGeometry(.11,.27,5),steel);arrowhead.rotation.x=Math.PI/2;arrowhead.position.z=1.42;arrow.add(arrowhead);
 const staff=new T.Group();arms[1].hand.add(staff);cube(staff,0,-.9,0,.13,2,.13,wood);let orb=new T.Mesh(new T.SphereGeometry(.22,16,12),m(0xa88cff));orb.position.y=-2;staff.add(orb);
 return t=>{
-const p=poseProgress(t),w=windupAmount(t),swing=p>.62&&p<.85?Math.sin((p-.62)/.23*Math.PI):0,war=s.classId==='warrior',ran=s.classId==='ranger';
+const p=poseProgress(t),w=windupAmount(t),strike=p>.62&&p<.85?(p-.62)/.23:p>=.85?1:0,swing=strike*strike*(3-2*strike),war=s.classId==='warrior',ran=s.classId==='ranger';
 steel.color.setHex(war?0x819fb6:ran?0x548e81:0x8d76bd);
-root.rotation.y=-.25+w*.35-swing*.7;body.rotation.z=Math.sin(t/650)*.016+w*.12-swing*.2;body.rotation.x=-w*.12+swing*.24;
+root.rotation.y=-.25+w*.55-swing*1.05;body.rotation.z=Math.sin(t/650)*.016+w*.18-swing*.34;body.rotation.x=-w*.2+swing*.35;
+root.position.x=-2.8+Math.sin(t/820)*.025+swing*.18;root.position.y=-1.3+Math.sin(t/560)*.018-swing*.08;
+cape.rotation.x=.12+Math.sin(t/360)*.09+swing*.28;cape.rotation.z=Math.sin(t/480)*.045;
 for(let i=0;i<2;i++)legs[i].rotation.x=Math.sin(t/500+i*Math.PI)*.03+swing*(i?.2:-.2);
 sword.visible=war;bow.visible=ran;staff.visible=!war&&!ran;
 for(let i=0;i<2;i++){let a=arms[i];a.shoulder.rotation.set(-1.2-w*.5,0,(i===0?1:-1)*(.65+w*.25));a.elbow.rotation.set(-.9-w*.3,0,0)}
-if(war){arms[1].shoulder.rotation.x=-1.8-w*.8+swing*1.6;arms[0].shoulder.rotation.x=-1.65-w*.6+swing*1.3;arms[1].shoulder.rotation.z=-.8+swing*1.2;arms[0].shoulder.rotation.z=.8-swing*.9;sword.rotation.x=Math.PI;sword.rotation.z=.1}
-if(ran){arms[0].shoulder.rotation.x=-1.55;arms[1].shoulder.rotation.x=-1.4-w*.8;arms[1].elbow.rotation.x=-1-w*.7;bow.rotation.z=Math.PI;stringPoints.set([0,-1.2,0,0,0,w*.8,0,1.2,0]);geo.attributes.position.needsUpdate=true}
+if(war){arms[1].shoulder.rotation.x=-1.8-w*.8+swing*1.6;arms[0].shoulder.rotation.x=-1.65-w*.6+swing*1.3;arms[1].shoulder.rotation.z=-.8+swing*1.2;arms[0].shoulder.rotation.z=.8-swing*.9;sword.rotation.x=Math.PI;sword.rotation.z=.1-w*.38+swing*1.05;arms[1].elbow.rotation.x=-1.35+w*.5+swing*.55;arms[0].elbow.rotation.x=-1.1+w*.3+swing*.7}
+if(ran){arms[0].shoulder.rotation.x=-1.55;arms[1].shoulder.rotation.x=-1.4-w*.8;arms[1].elbow.rotation.x=-1-w*.7;bow.rotation.z=Math.PI;stringPoints.set([0,-1.2,0,0,0,w*.8,0,1.2,0]);geo.attributes.position.needsUpdate=true;arrow.visible=p<.62;arrow.position.z=w*.8;arms[1].shoulder.rotation.z=.35+w*.5}
+if(!war&&!ran){arms[1].shoulder.rotation.x=-1.55-w*.45;arms[1].elbow.rotation.x=-.65-w*.55;orb.scale.setScalar(1+w*.6);staff.rotation.z=w*.3;}
 R.render(scene,cam);
 }
 }catch(e){console.warn('3D fallback',e);return null}
