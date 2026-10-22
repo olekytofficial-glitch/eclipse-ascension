@@ -26,7 +26,7 @@ button,select{font:inherit;color:inherit;background:#252b49;border:1px solid #44
       <div class="pill">⚔️ <b id="power">0</b> mocy</div>
     </div>
   </header>
-  <div class="notice" style="background:#173b36;border-color:#4db99e;color:#d8fff5;font-weight:700">✅ AKTUALIZACJA ONLINE DZIAŁA! ECLIPSE v1.3 — Śmierć potworów i skrzynki bossów 🎉</div>
+  <div class="notice" style="background:#173b36;border-color:#4db99e;color:#d8fff5;font-weight:700">✅ AKTUALIZACJA ONLINE DZIAŁA! ECLIPSE v1.3.1 — Nazwy potworów i atak na arenie 🎉</div>
   <div class="notice tiny">Prototyp mechanik • ADMIN Auto Click: Opcje — zapis lokalny w tej przeglądarce. Postęp offline jest naliczany przy ponownym otwarciu gry. Skrzynki wypadają tylko za bossów pokonanych podczas aktywnej gry.</div>
   <main class="layout">
     <section class="panel">
@@ -37,7 +37,7 @@ button,select{font:inherit;color:inherit;background:#252b49;border:1px solid #44
       </div>
       <div class="combatbar">
         <div><b id="heroName">Wędrowiec</b><div class="tiny muted" id="weaponLabel">Miecz • automatyczny atak</div><div class="hpbar"><div id="heroHpFill"></div></div><div class="tiny muted" id="heroHp">Życie 100 / 100</div></div>
-        <div class="actionrow"><button class="primary" id="attackBtn">✦ ATAKUJ</button><button id="skillBtn">Skill [Q]</button></div>
+        <div class="actionrow"><button id="skillBtn">Skill [Q]</button></div>
       </div>
       <div class="panelbody">
         <div class="actionrow">
@@ -45,7 +45,7 @@ button,select{font:inherit;color:inherit;background:#252b49;border:1px solid #44
           <button id="healBtn">Ulecz (50 🪙)</button>
           <button id="saveBtn">Zapisz grę</button>
         </div>
-        <p class="tiny muted">Klikaj w ATAKUJ albo użyj spacji. Postać atakuje również automatycznie. Skill: Q.</p>
+        <p class="tiny muted">Kliknij dowolne miejsce na arenie, aby zaatakować. Spacja też działa. Bohater atakuje również automatycznie. Skill: Q.</p>
         <div class="log" id="log"></div>
       </div>
     </section>
@@ -140,7 +140,7 @@ function cls(){return classes[s.classId]}
 function mult(){return (1+s.totalEssence*.05)*(1+inventoryBonus()/100)*(1+relicLevel('power')*.08)}
 function damage(){const st=gearStats();return Math.floor((10+s.damageLevel*4+relicLevel('blade')*6)*cls().damage*weapon().factor*mult()*(1+st.attack/100)*(1+(st.critRate+relicLevel('luck')*2)/100*(st.critDamage+relicLevel('fury')*10)/100)*(s.skillUnlocked.focus?1.5:1))}
 function autoDps(){const st=gearStats();return (damage()*.55+s.autoLevel*1.2)*cls().auto*weapon().speed*(1+(st.attackSpeed+relicLevel('haste')*.1)/100)*(performance.now()<s.frenzyUntil?2:1)}
-function enemyLabel(){return s.stage%10===0?'Strażnik Szczeliny':(['Pustynny szlam','Wilczy cień','Rycerz pustki','Widmowy łucznik','Demon popiołu'][(s.stage-1)%5])}
+const enemyNames=[['Glutek','Błotnik','Śluzor','Bagniak','Mokrak','Szlambert','Kwasik','Zgnilec'],['Mroczek','Cieniokieł','Wilczur','Nocny Pazur','Zębacz','Zmierzch','Futrzak','Widmokieł'],['Żelazny Upiór','Mroczny Gwardzista','Pustelnik','Rdzawe Ostrze','Czarny Hełm','Nocny Strażnik','Pancernik','Bezimienny'],['Widmo','Fioletowy Łowca','Szept','Upiorny Strzelec','Zjawik','Cichy Łuk','Mgiełka','Nocny Tropiciel'],['Popielnik','Żarłok','Iskrownik','Spopielacz','Ognik','Rogacz','Płomyk','Dymoróg'],['Władca Szczeliny','Kharzun','Zarath Pustki','Morghul','Xerathis','Vorthak','Nekrion','Azhgor']];function enemyLabel(){const kind=s.stage%10===0?5:(s.stage-1)%5;const seed=(Math.imul(s.stage,1664525)+1013904223)>>>0;return enemyNames[kind][seed%enemyNames[kind].length]}
 function pushLog(t){let el=document.createElement('div');el.textContent='› '+t;$('log').prepend(el);while($('log').children.length>5)$('log').lastChild.remove()}
 function save(){if(resettingGame)return;s.lastSeen=Date.now();localStorage.setItem('eclipseAscensionSave',JSON.stringify(s));pushLog('Zapisano postęp.')}
 function load(){try{let raw=localStorage.getItem('eclipseAscensionSave');if(raw){let old=JSON.parse(raw);s={...s,...old};s.bossMax=s.bossMax||enemyMax();s.bossHp=Math.min(s.bossHp||s.bossMax,s.bossMax);}}catch(e){} 
@@ -203,7 +203,7 @@ function renderStats(){$('gold').textContent=fmt(s.gold);$('essence').textConten
 function render(){renderStats();renderSkills();renderQuests();renderRelics();renderArenaSkills();document.body.className='theme-'+(s.theme==='dark'?'':s.theme);if(s.theme==='dark')document.body.className='';$('themeSelect').value=s.theme}
 $('arenaSkillQ').onclick=useSkill;$('arenaSkillE').onclick=useFrenzy;$('arenaSkillR').onclick=useShadow;
 $('openChestBtn').onclick=openChest;$('autoEquipBtn').onclick=()=>{s.autoEquip=!s.autoEquip;render();saveSilent()};$('bagSort').onchange=renderEquipment;$('sellWorseBtn').onclick=sellWorse;$('bulkSellBtn').onclick=bulkSell;$('bagFilter').onchange=renderEquipment;
-$('attackBtn').onclick=manualAttack;$('skillBtn').onclick=useSkill;
+$('skillBtn').onclick=useSkill;
 $('adminOpenBtn').onclick=()=>{s.adminOpen=!s.adminOpen;pushLog(s.adminOpen?'ADMIN: Auto Open włączony.':'ADMIN: Auto Open wyłączony.');render();saveSilent()};
 $('adminPrestigeBtn').onclick=()=>{s.adminPrestige=!s.adminPrestige;pushLog(s.adminPrestige?'ADMIN: Auto Prestiż włączony.':'ADMIN: Auto Prestiż wyłączony.');render()};
 $('adminAutoBtn').onclick=()=>{s.adminAuto=!s.adminAuto;pushLog(s.adminAuto?'ADMIN: Auto Click włączony.':'ADMIN: Auto Click wyłączony.');render()};
@@ -221,7 +221,7 @@ $('exportBtn').onclick=()=>{let blob=new Blob([JSON.stringify(s,null,2)],{type:'
 $('resetBtn').onclick=()=>{if(!adminMode)return;if(confirm('ADMIN: na pewno bezpowrotnie usunąć cały lokalny zapis tej przeglądarki?')){resettingGame=true;s.adminAuto=false;s.adminPrestige=false;s.adminOpen=false;localStorage.removeItem('eclipseAscensionSave');window.onbeforeunload=null;location.replace(location.pathname+'?admin=1&reset='+Date.now())}};
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
 window.addEventListener('keydown',e=>{if(e.code==='Space'&&!['BUTTON','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();manualAttack()}if(e.key.toLowerCase()==='q')useSkill();if(e.key.toLowerCase()==='e')useFrenzy();if(e.key.toLowerCase()==='r')useShadow()});
-const canvas=$('scene'),ctx=canvas.getContext('2d');canvas.addEventListener('click',event=>{if(!arenaChest||s.chests<=0)return;const r=canvas.getBoundingClientRect();const x=(event.clientX-r.left)*canvas.width/r.width,y=(event.clientY-r.top)*canvas.height/r.height;if(x>770&&x<910&&y>425&&y<560)openChest()});
+const canvas=$('scene'),ctx=canvas.getContext('2d');canvas.style.cursor='crosshair';canvas.addEventListener('click',event=>{const r=canvas.getBoundingClientRect();const x=(event.clientX-r.left)*canvas.width/r.width,y=(event.clientY-r.top)*canvas.height/r.height;if(arenaChest&&s.chests>0&&x>770&&x<910&&y>425&&y<560){openChest();return}manualAttack()});
 
 function artPoly(points,fill,stroke=null,line=2){ctx.beginPath();ctx.moveTo(points[0],points[1]);for(let i=2;i<points.length;i+=2)ctx.lineTo(points[i],points[i+1]);ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=line;ctx.stroke()}}
 function artLine(points,color,width=3){ctx.beginPath();ctx.moveTo(points[0],points[1]);for(let i=2;i<points.length;i+=2)ctx.lineTo(points[i],points[i+1]);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.stroke()}
