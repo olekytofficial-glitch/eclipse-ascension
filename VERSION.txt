@@ -1,1 +1,2 @@
-ECLIPSE: Ascension — MVP 0.4
+ECLIPSE: Ascension — v1.8
+Class-specific 3D heroes, updated combat animations, armor and capes.
