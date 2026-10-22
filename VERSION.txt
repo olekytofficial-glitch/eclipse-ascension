@@ -1,2 +1,2 @@
-ECLIPSE: Ascension — v1.8
-Class-specific 3D heroes, updated combat animations, armor and capes.
+ECLIPSE: Ascension — v1.9 beta
+Experimental rigged 3D GLB character and skeletal animations; procedural hero fallback.
