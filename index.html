@@ -271,6 +271,43 @@ const ease=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)};
 const phase=(p,a,b)=>ease((p-a)/(b-a));
 const legs=[];for(const side of [-1,1]){let g=new T.Group();g.position.set(side*.28,1.8,0);root.add(g);cube(g,0,-.48,0,.4,.9,.43,dark);cube(g,0,-1.05,.12,.44,.62,.5,steel);cube(g,0,-1.36,.27,.47,.22,.75,dark);legs.push(g)}
 const arms=[];for(const side of [-1,1]){let shoulder=new T.Group();shoulder.position.set(side*.7,3.03,0);body.add(shoulder);const pad=cube(shoulder,0,-.08,0,.63,.35,.63,steel);pad.rotation.z=side*.15;shoulderPads.push(pad);cube(shoulder,0,-.38,0,.36,.85,.4,steel);let elbow=new T.Group();elbow.position.y=-.78;shoulder.add(elbow);cube(elbow,0,-.3,0,.31,.67,.35,dark);let hand=new T.Group();hand.position.y=-.65;elbow.add(hand);cube(hand,0,0,0,.31,.31,.32,skin);arms.push({shoulder,elbow,hand})}
+
+const detailMat=(c,metal=.25)=>new T.MeshStandardMaterial({color:c,metalness:metal,roughness:.5});
+const ivory=detailMat(0xe5d7bd),shadow=detailMat(0x111927),rune=detailMat(0x79e6ec,.5),emerald=detailMat(0x3f9478),violet=detailMat(0x8460c5),red=detailMat(0x9e4254);
+const orbMesh=(g,x,y,z,r,mat)=>{let o=new T.Mesh(new T.SphereGeometry(r,18,12),mat);o.position.set(x,y,z);g.add(o);return o};
+const cone=(g,x,y,z,r,h,mat)=>{let o=new T.Mesh(new T.ConeGeometry(r,h,8),mat);o.position.set(x,y,z);g.add(o);return o};
+const detail={warrior:new T.Group(),ranger:new T.Group(),arcanist:new T.Group()};
+Object.values(detail).forEach(g=>body.add(g));
+const W=detail.warrior,Rg=detail.ranger,M=detail.arcanist;
+cube(W,0,2.65,.42,.9,.92,.16,steel);
+cube(W,0,3.08,.48,.8,.16,.18,gold);
+cube(W,0,2.45,.53,.68,.08,.09,gold);
+cube(W,0,2.73,.54,.19,.53,.12,gold);
+for(const x of [-.36,.36])for(const y of [2.3,2.93])orbMesh(W,x,y,.55,.045,gold);
+cube(W,0,3.76,0,.77,.16,.73,gold);
+cone(W,0,4.08,0,.23,.56,steel);
+for(const x of [-.23,.23])cube(W,x,3.53,.39,.12,.09,.12,rune);
+cone(Rg,0,4.05,-.03,.53,.8,emerald);
+cube(Rg,0,3.68,.26,.7,.28,.48,emerald);
+cube(Rg,0,2.55,.42,.88,.94,.14,emerald);
+for(const side of [-1,1]){const strap=cube(Rg,side*.22,2.65,.53,.13,1.04,.08,ivory);strap.rotation.z=side*.25;}
+cube(Rg,0,2.12,.54,.91,.17,.14,ivory);
+for(const side of [-1,1])cube(Rg,side*.4,2.78,.49,.11,.52,.1,gold);
+cone(M,0,4.12,-.05,.44,.9,violet);
+cube(M,0,2.55,.45,.97,1.14,.13,violet);
+cube(M,0,3.14,.34,1.2,.18,.49,violet);
+orbMesh(M,0,2.71,.58,.17,rune);
+for(const side of [-1,1]){const strip=cube(M,side*.32,2.52,.54,.1,.8,.06,gold);strip.rotation.z=side*.17;}
+for(let i=0;i<3;i++)orbMesh(M,(i-1)*.31,2.14,.57,.07,rune);
+const face=new T.Group();face.position.set(0,3.53,.36);body.add(face);
+orbMesh(face,0,-.09,.03,.24,skin);
+orbMesh(face,-.15,.055,.17,.044,shadow);orbMesh(face,.15,.055,.17,.044,shadow);
+orbMesh(face,0,-.055,.23,.07,skin);
+cube(face,0,-.24,.13,.24,.045,.06,red);
+const beard=cube(face,0,-.27,.14,.35,.08,.11,shadow);
+const classCape=[detailMat(0x3b4359),detailMat(0x285f51),detailMat(0x443069)];
+for(let i=0;i<2;i++){const leg=legs[i];cube(leg,0,-.51,.25,.33,.66,.1,gold);cube(leg,0,-1.1,.4,.35,.37,.09,steel);}
+
 const sword=new T.Group();arms[1].hand.add(sword);cube(sword,0,.3,0,.12,.65,.14,wood);cube(sword,0,-.04,0,.72,.13,.18,gold);cube(sword,0,-1.1,0,.18,2,.16,steel);const tip=new T.Mesh(new T.ConeGeometry(.15,.4,4),steel);tip.position.y=-2.25;tip.rotation.z=Math.PI;sword.add(tip);
 const bow=new T.Group();arms[0].hand.add(bow);const curve=[];for(let i=0;i<=20;i++){let u=i/20;curve.push(new T.Vector3(Math.sin(u*Math.PI)*.5,(u-.5)*2.4,0))}
 bow.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(curve),30,.06,7),wood));
@@ -286,6 +323,9 @@ const recover=active?phase(p,.76,1):1;
 const war=s.classId==='warrior',ran=s.classId==='ranger',mage=!war&&!ran;
 const idle=Math.sin(t/510),breath=Math.sin(t/850);
 steel.color.setHex(war?0x819fb6:ran?0x548e81:0x8d76bd);
+detail.warrior.visible=war;detail.ranger.visible=ran;detail.arcanist.visible=mage;
+cape.material.color.copy(classCape[war?0:ran?1:2].color);
+beard.visible=war;
 root.position.set(-2.8+release*.22, -1.3+idle*.018-release*.07,0);
 root.rotation.set(0,-.22-wind*.12+release*.48,0);
 body.rotation.set(-wind*.13+release*.19,0,breath*.013-wind*.08+release*.18);
